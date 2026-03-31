@@ -18,12 +18,41 @@
 }
 
 .card {
-  aspect-ratio: calc(500/726);
+  /*aspect-ratio: calc(500/726);*/
   width: 100px;
+  height: 145px;
+  position: relative;
 }
+
 .card img {
   width: 100%;
   height: 100%;
+}
+
+.card-in-hand {
+  transform: translateY(0px);
+  transition: 50ms ease transform;
+}
+.card-in-hand:hover {
+  transform: translateY(-20px) !important;
+}
+
+.hand {
+  width: 150px;
+  height: 200px;
+  background-color: grey;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10px, max-content));
+}
+
+.deck {
+  width: 100px;
+  height: 145px;
+  background-color: whitesmoke;
+}
+
+.deck .card {
+  position: absolute;
 }
 
 .hero {

@@ -1,32 +1,43 @@
-export const CardSuit = {
+export const CARD_SUITS = {
     Spades: "spades",
     Hearts: "hearts",
     Clubs: "clubs",
     Diamonds: "diamonds",
 } as const
 
-export const CardValue = {
-    two: "2",
-    three: "3",
-    four: "4",
-    five: "5",
-    six: "6",
-    seven: "7",
-    eight: "8",
-    nine: "9",
-    ten: "10",
-    jack: "jack",
-    queen: "queen",
-    king: "king",
-    ace: "ace",
+export type CardSuit = typeof CARD_SUITS[keyof typeof CARD_SUITS]
+
+export const CARD_VALUES = {
+    Two: "2",
+    Three: "3",
+    Four: "4",
+    Five: "5",
+    Six: "6",
+    Seven: "7",
+    Eight: "8",
+    Nine: "9",
+    Ten: "10",
+    Jack: "jack",
+    Queen: "queen",
+    King: "king",
+    Ace: "ace",
 } as const
 
-export function cardToId(suit: string, value: string) {
+const faceCards = [CARD_VALUES.Jack, CARD_VALUES.Queen, CARD_VALUES.King]
+
+export type CardValue = typeof CARD_VALUES[keyof typeof CARD_VALUES]
+
+export interface ICard {
+    suit: CardSuit
+    value: CardValue
+} 
+
+export function cardToId(suit: CardSuit, value: CardValue) {
     return `${value}_${suit}`
 }
 
-export function cardToFile(suit: string, value: string) {
-    if (suit in [CardValue.jack, CardValue.queen, CardValue.king]) {
+export function cardToFile(suit: CardSuit, value: CardValue) {
+    if (suit in faceCards) {
         return `${value}_of_${suit}2.png`
     } else {
         return `${value}_of_${suit}.png`
