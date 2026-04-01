@@ -3,40 +3,58 @@ import './App.css'
 import { DragDropProvider } from '@dnd-kit/react'
 import Card from './components/Card'
 import Hand from './components/Hand'
-import { CARD_SUITS, CARD_VALUES, type ICard } from './utils/card'
+import { boardId, type ICard } from './utils/card'
 import Board from './components/Board'
 import Deck from './components/Deck'
-import { addValueToWillChange, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
+import useGameState from './hooks/useGameState'
 
 function App() {
-  const [hand, setHand] = useState<ICard[]>([
-    { suit: CARD_SUITS.Clubs, value: CARD_VALUES.Eight },
-    { suit: CARD_SUITS.Diamonds, value: CARD_VALUES.Seven },
-  ])
+  const {
+    hand,
+    deck,
+    board,
 
-  const [board, setBoard] = useState<ICard[]>([
-    { suit: CARD_SUITS.Spades, value: CARD_VALUES.Ace },
-    { suit: CARD_SUITS.Hearts, value: CARD_VALUES.King },
-  ])
-  
+    attacking,
+    attack,
+    draw,
+    defend,
+    concede,
+    finish,
+  } = useGameState()
+
   return (
     <section id="center">
       <AnimatePresence>
 
-      <Deck deck={board} />
+      <Deck deck={deck} />
       <DragDropProvider onDragEnd={(event) => {
-        if (event.canceled) return null
+        if (event.canceled) return
 
-        const {target} = event.operation
+        const {target, source} = event.operation
+        const card = source?.data as ICard
+        const targetCard = target?.data as ICard | undefined
+
+        if (attacking) {
+          if (target?.id === boardId) {
+
+              const result = attack(card)
+
+              if (!result) return
+            }
+        } else {
+          if (target?.id !== boardId && targetCard) {
+            const result = defend(card, targetCard)
+            
+            if (!result) return
+          }
+        }
       }}>
+        <Board board={board} attacking={attacking} />
         <Hand hand={hand} />
       </DragDropProvider>
-      <button onClick={() => {
-        setHand((h) => h.concat({ suit: CARD_SUITS.Spades, value: CARD_VALUES.Ace }))
-        setBoard((b) => b.splice(b.findIndex(({suit, value}) => suit == CARD_SUITS.Spades && value == CARD_VALUES.Ace), 1))
-      }}
-        >draw</button>
       </AnimatePresence>
+      <button onClick={() => draw()}>draw</button>
     </section>
   )
 }

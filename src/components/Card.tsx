@@ -4,13 +4,14 @@ import {motion} from 'framer-motion'
 
 interface CardProps extends ICard {
     faceDown?: boolean
+    lock?: boolean
 }
 
-function Card({suit, value, faceDown=false}: CardProps) {
+function Card({suit, value, faceDown=false, lock=false }: CardProps) {
     const {ref} = useDraggable({
         id: cardToId(suit, value),
         data: {suit, value},
-        disabled: faceDown
+        disabled: faceDown || lock,
     })
 
     return (

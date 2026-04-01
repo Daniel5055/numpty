@@ -1,19 +1,21 @@
 import { useDroppable } from "@dnd-kit/react";
-import type { ICard } from "../utils/card";
-import Card from "./Card";
+import { boardId, stackToId, type ICard } from "../utils/card";
+import Stack from "./Stack";
 
 interface BoardProps {
-    board: ICard[]
+    board: [ICard, ICard?][]
+    attacking: boolean
 }
 
-function Board({ board }: BoardProps) {
+function Board({ board, attacking }: BoardProps) {
     const {ref} = useDroppable({
-        id: "board"
+        id: boardId,
+        disabled: !attacking
     })
 
     return (
         <div ref={ref} className="board">
-            {board.map((c, i) => <Card {...c} key={i}/>)}
+            {board.map(([a, d]) => <Stack attack={a} defence={d} key={stackToId(a)} />)}
         </div>
     )
 }

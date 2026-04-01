@@ -10,13 +10,12 @@ function Hand({hand}: HandProps) {
     const {ref} = useDroppable({
         id: "hand"
     })
-    console.log(hand)
 
     return (
         <div ref={ref} className="hand">
             {hand.map((c) => (
-                <div className="card-in-hand">
-                    <Card {...c} key={cardToId(c.suit, c.value)}/>
+                <div className="card-in-hand" key={`hand_${cardToId(c.suit, c.value)}`}>
+                    <Card {...c} />
                 </div>
             ))}
         </div>
