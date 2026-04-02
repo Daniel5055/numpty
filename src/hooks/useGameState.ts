@@ -7,9 +7,6 @@ import { boardAdd, boardRemove } from "../utils/board";
 function useGameState(player: string ,engine: Engine): GameState {
     const nextId = useRef(0)
 
-    const [attacker, setAttacker] = useState<string>("player1") 
-    const [defender, setDefender] = useState<string>("player2") 
-
     const [attacking, setAttacking] = useState<boolean>(true)
 
     const [toGrant, setToGrant] = useState<ICard[]>([])
@@ -269,8 +266,6 @@ function useGameState(player: string ,engine: Engine): GameState {
     }
 
     return {
-        attacker,
-        defender,
         matchState,
 
         attacking,

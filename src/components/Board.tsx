@@ -7,7 +7,7 @@ interface BoardProps {
     attacking: boolean
 }
 
-function Board({ board, attacking }: BoardProps) {
+function Board({ board }: BoardProps) {
     const {ref} = useDroppable({
         id: boardId,
     })

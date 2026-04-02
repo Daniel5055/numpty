@@ -1,7 +1,6 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import './App.css'
 import { DragDropProvider } from '@dnd-kit/react'
-import Card from './components/Card'
 import Hand from './components/Hand'
 import { boardId, CARD_SUITS, type ICard } from './utils/card'
 import Board from './components/Board'
@@ -18,7 +17,7 @@ function App() {
   const player2 = "CPU"
   const trump = CARD_SUITS.Spades
   const engine = useRef(new ClientEngine(player1, player2, trump))
-  useRef(new SimpleAi(player2, engine.current, false))
+  useRef(new SimpleAi(player2, engine.current))
 
   const {
     hand,
@@ -68,6 +67,9 @@ function App() {
             const valid = boardUnique(board)
             if (valid.includes(card.value)) {
               grant(card)
+            } else {
+              grantEnd()
+              attack(card)
             }
           }
         }
@@ -78,6 +80,7 @@ function App() {
         {matchState === "PendingAttack" && <button onClick={finish}>Finish</button>}
         {matchState === "PendingDefence" && <button onClick={concede}>Concede</button>}
         {matchState === "PendingGrant" && <button onClick={grantEnd}>Done Granting</button>}
+        {matchState === "Wait" && <button>Waiting</button>}
       </DragDropProvider>
       </AnimatePresence>
     </section>
