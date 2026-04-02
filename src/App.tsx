@@ -38,6 +38,9 @@ function App() {
     grantEnd,
   } = useGameState(player1, engine.current)
 
+  const boardDroppable = (!attacking && board.length === 1)
+    || attacking
+
   return (
     <div id="container">
     <section id="left">
@@ -55,6 +58,8 @@ function App() {
         const {target, source} = event.operation
         const card = source?.data as ICard
         const targetCard = target?.data as ICard | undefined
+
+        console.log('target', target?.id)
 
         if (matchState === "PendingAttack") {
           if (target?.id === boardId) {
@@ -85,7 +90,7 @@ function App() {
         }
       }}>
           <Hand hand={opHand}  opponent={true}/>
-          <Board board={board} attacking={attacking} />
+          <Board board={board} droppable={boardDroppable} attacking={attacking} />
           <Hand hand={hand}  opponent={false}/>
       </DragDropProvider>
       </AnimatePresence>

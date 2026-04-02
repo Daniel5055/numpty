@@ -4,17 +4,19 @@ import Stack from "./Stack";
 
 interface BoardProps {
     board: [ICard, ICard?][]
+    droppable?: boolean
     attacking: boolean
 }
 
-function Board({ board }: BoardProps) {
+function Board({ board, droppable = true, attacking }: BoardProps) {
     const {ref} = useDroppable({
         id: boardId,
+        disabled: !droppable
     })
 
     return (
         <div ref={ref} className="board">
-            {board.map(([a, d]) => <Stack attack={a} defence={d} key={stackToId(a)} />)}
+            {board.map(([a, d]) => <Stack attack={a} defence={d} key={stackToId(a)} attacking={attacking} />)}
         </div>
     )
 }

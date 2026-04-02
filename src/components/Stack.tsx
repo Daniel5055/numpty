@@ -5,13 +5,13 @@ import Card from "./Card"
 interface StackProps {
     attack: ICard
     defence?: ICard
+    attacking: boolean
 }
 
-function Stack({attack, defence}: StackProps) {
-
+function Stack({attack, defence, attacking}: StackProps) {
     const {ref} = useDroppable({
         id: stackToId(attack),
-        disabled: defence !== undefined,
+        disabled: defence !== undefined || attacking,
         data: attack
     })
 
