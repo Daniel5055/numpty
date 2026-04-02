@@ -25,6 +25,7 @@ function App() {
     opHand,
     board,
     deck,
+    discard,
 
     matchState,
     attacking,
@@ -40,7 +41,10 @@ function App() {
   return (
     <div id="container">
     <section id="left">
-      <Deck staged={deck} />
+      <Deck deck={deck ? [deck] : []} />
+    </section>
+    <section id="right">
+      <Deck deck={discard} />
     </section>
     <section id="center">
       <AnimatePresence>

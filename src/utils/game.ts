@@ -1,6 +1,6 @@
 import type { Board, ICard } from "./card"
 
-export type MatchState = "PendingAttack" | "PendingDefence" | "ReversalPendingDefence" | "Wait" | "PendingGrant"
+export type MatchState = "PendingAttack" | "PendingNewAttack" | "PendingDefence" | "ReversalPendingDefence" | "Wait" | "PendingGrant"
 
 export interface GameState {
     attacking: boolean
@@ -11,6 +11,7 @@ export interface GameState {
     opHand: ICard[]
     board: Board
     deck?: ICard
+    discard: ICard[]
 
     attack: (card: ICard) => boolean
     defend: (card: ICard, against: ICard) => boolean

@@ -16,6 +16,7 @@ function useGameState(player: string ,engine: Engine): GameState {
 
     const [hand, setHand] = useState<ICard[]>([])
     const [deck, setDeck] = useState<ICard | undefined>(undefined)
+    const [discard, setDiscard] = useState<ICard[]>([])
     const [opHand, setOpHand] = useState<ICard[]>([])
     const [board, setBoard] = useState<[ICard, ICard?][]>([])
 
@@ -92,11 +93,9 @@ function useGameState(player: string ,engine: Engine): GameState {
     }
 
     function opTakeBoard(animation: Promise<void>, except?: ICard) {
-        let ac = animation
-
         const cards = _.reverse(_.zip.apply(_, board)).flat().filter((c) => c !== undefined && c !== except) as ICard[]
 
-        ac = ac
+        return animation
             .then(() => {
                 setOpHand((h) => h.concat(cards))
                 setBoard((b) => cards.reduce((b1, card) => boardRemove(card, b1), b))
@@ -104,8 +103,17 @@ function useGameState(player: string ,engine: Engine): GameState {
             .then(waitLong)
             .then(() => setOpHand((h) => removeLast(h, cards.length).concat(cards.map(() => blankCard(nextId.current++)))))
             .then(wait)
+    }
 
-        return ac
+    function finishBoard(animation: Promise<void>) {
+        const cards = _.reverse(_.zip.apply(_, board)).flat().filter((c) => c !== undefined) as ICard[]
+
+        return animation
+            .then(() => {
+                setDiscard((d) => d.concat(cards))
+                setBoard((b) => cards.reduce((b1, card) => boardRemove(card, b1), b))
+            })
+            .then(wait)
     }
 
     // Do animation then wait
@@ -138,12 +146,13 @@ function useGameState(player: string ,engine: Engine): GameState {
             setMatchState(attacking ? "PendingAttack" : "PendingDefence")
         })
         engine.conceded(player, () => {
+            console.log('ai conceeded')
             setMatchState("PendingGrant")
             setAttackOptions(new Set())
         })
         engine.finished(player, () => {
             setAttacking(true)
-            setBoard([])
+            aContext.current = finishBoard(aContext.current)
             setMatchState("PendingAttack")
             setAttackOptions(new Set())
         })
@@ -253,8 +262,8 @@ function useGameState(player: string ,engine: Engine): GameState {
             return false
         }
 
-        setBoard([])
         setAttacking(false)
+        aContext.current = finishBoard(aContext.current)
         setMatchState("Wait")
 
         engine.finish(player)
@@ -296,6 +305,7 @@ function useGameState(player: string ,engine: Engine): GameState {
         opHand,
         board,
         deck,
+        discard,
 
         // Interaction
         attack,
