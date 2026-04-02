@@ -74,9 +74,7 @@ export class ClientEngine implements Engine {
     start() {
         if (!this.started) {
             this.started = true
-            setTimeout(() => {
-                this.drawStep(this.attacker)
-            }, 1000)
+            this.drawStep(this.attacker)
         }
     }
 

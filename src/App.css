@@ -108,7 +108,29 @@
   }
 }
 
+#container {
+  display: flex;
+  margin: 0 auto;
+  place-content: center;
+  position: relative;
+  text-align: left;
+
+  width: 800px;
+}
+
+#left {
+  position: absolute;
+  height: 100%;
+  left: 0px;
+  display: flex;
+  place-content: center;
+  place-items: center;
+  flex-direction: column;
+  gap: 25px
+}
+
 #center {
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   gap: 25px;

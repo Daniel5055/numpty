@@ -9,6 +9,7 @@ import useGameState from './hooks/useGameState'
 import { ClientEngine } from './utils/engines/client'
 import SimpleAi from './utils/ai/simpleAi'
 import { boardUnique, boardUnresolved, validDefence } from './utils/board'
+import Deck from './components/Deck'
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
     hand,
     opHand,
     board,
+    deck,
 
     matchState,
     attacking,
@@ -36,6 +38,10 @@ function App() {
   } = useGameState(player1, engine.current)
 
   return (
+    <div id="container">
+    <section id="left">
+      <Deck staged={deck} />
+    </section>
     <section id="center">
       <AnimatePresence>
 
@@ -66,24 +72,25 @@ function App() {
           if (target?.id === boardId) {
             const valid = boardUnique(board)
             if (valid.includes(card.value)) {
+              console.log('grantin', card)
               grant(card)
             } else {
-              grantEnd()
-              attack(card)
+              grantEnd(card)
             }
           }
         }
       }}>
-        <Hand hand={opHand}  opponent={true}/>
-        <Board board={board} attacking={attacking} />
-        <Hand hand={hand}  opponent={false}/>
-        {matchState === "PendingAttack" && <button onClick={finish}>Finish</button>}
-        {matchState === "PendingDefence" && <button onClick={concede}>Concede</button>}
-        {matchState === "PendingGrant" && <button onClick={grantEnd}>Done Granting</button>}
-        {matchState === "Wait" && <button>Waiting</button>}
+          <Hand hand={opHand}  opponent={true}/>
+          <Board board={board} attacking={attacking} />
+          <Hand hand={hand}  opponent={false}/>
       </DragDropProvider>
       </AnimatePresence>
+      {matchState === "PendingAttack" && <button onClick={finish}>Finish</button>}
+      {matchState === "PendingDefence" && <button onClick={concede}>Concede</button>}
+      {matchState === "PendingGrant" && <button onClick={() => grantEnd()}>Done Granting</button>}
+      {matchState === "Wait" && <button>Waiting</button>}
     </section>
+    </div>
   )
 }
 

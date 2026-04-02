@@ -10,6 +10,7 @@ export interface GameState {
     hand: ICard[]
     opHand: ICard[]
     board: Board
+    deck?: ICard
 
     attack: (card: ICard) => boolean
     defend: (card: ICard, against: ICard) => boolean
@@ -17,7 +18,7 @@ export interface GameState {
     concede: () => boolean
     finish: () => boolean
     grant: (card: ICard) => boolean
-    grantEnd: () => boolean
+    grantEnd: (card?: ICard) => Promise<void>
 }
 
 export type CardLocation = "Deck" | "Board" | "OpHand" | "MyHand"
