@@ -4,9 +4,10 @@ import Card from "./Card";
 
 interface HandProps {
     hand: ICard[]
+    opponent: boolean
 }
 
-function Hand({hand}: HandProps) {
+function Hand({hand, opponent}: HandProps) {
     const {ref} = useDroppable({
         id: "hand"
     })
@@ -14,8 +15,8 @@ function Hand({hand}: HandProps) {
     return (
         <div ref={ref} className="hand">
             {hand.map((c) => (
-                <div className="card-in-hand" key={`hand_${cardToId(c.suit, c.value)}`}>
-                    <Card {...c} />
+                <div className="card-in-hand" key={`hand_${cardToId(c.suit, c.value, c.id)}`}>
+                    <Card {...c} faceDown={opponent} />
                 </div>
             ))}
         </div>

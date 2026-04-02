@@ -1,52 +1,167 @@
 import { useEffect, useRef, useState } from "react";
-import { allCards,  removeCard, type CardValue, type ICard } from "../utils/card";
-import { type MatchState, type GameState } from "../utils/game";
+import { allCards,  blankCard,  removeCard, removeLast, type CardValue, type ICard } from "../utils/card";
+import { type MatchState, type GameState, type CardMove, type CardLocation } from "../utils/game";
+import type { Engine } from "../utils/engines/engine";
+import { i } from "framer-motion/client";
+import { boardAdd, boardRemove } from "../utils/board";
 
+function useGameState(player: string ,engine: Engine): GameState {
+    const nextId = useRef(0)
 
-function useGameState(): GameState {
     const [attacker, setAttacker] = useState<string>("player1") 
     const [defender, setDefender] = useState<string>("player2") 
 
     const [attacking, setAttacking] = useState<boolean>(true)
 
-    const [hand, setHand] = useState<ICard[]>([])
-    const [deck, setDeck] = useState<ICard[]>(allCards)
+    const [toGrant, setToGrant] = useState<ICard[]>([])
 
-    function draw(n: number = 1) {
-        for (let i = 0; i < n; i++) {
-            setHand((h) => h.concat(deck.slice(0, n)))
-            setDeck((d) => d.slice(n))
+    const aContext = useRef<Promise<void>>(Promise.resolve())
+
+    const [hand, setHand] = useState<ICard[]>([])
+    const [deck, setDeck] = useState<ICard | null>()
+    const [opHand, setOpHand] = useState<ICard[]>([])
+    const [board, setBoard] = useState<[ICard, ICard?][]>([])
+
+    const [matchState, setMatchState] = useState<MatchState>("Wait")
+
+    const [attackOptions, setAttackOptions] = useState<Set<CardValue>>(new Set())
+
+    function moveCards(move:  CardMove | undefined) {
+        if (move) {
+            const {from, to, cards} = move
+            aContext.current = cards.reduce((a, [card1, card2]) => moveCard(a, from, to, card1, card2), aContext.current)
         }
     }
 
+    // Do animation then wait
+    function wait(): Promise<void> {
+        return new Promise((res) => setTimeout(res, 100))
+    }
+
+    function moveCard(animation: Promise<void>, from: CardLocation, to: CardLocation, card1: ICard, card2?: ICard): Promise<void> {
+        switch (from) {
+            case "Deck":
+                // Cards can move from deck to either hands
+                if (to === "MyHand") {
+                    return animation
+                        .then(() => setDeck(card1))
+                        .then(wait)
+                        .then(() => {
+                            setHand((h) => h.concat(card1));
+                            setDeck(null);
+                        })
+                        .then(wait)
+                } else {
+                    return animation
+                        .then(() => setDeck(card1))
+                        .then(wait)
+                        .then(() => {
+                            setOpHand((h) => h.concat(card1))
+                            setDeck(null);
+                        })
+                        .then(wait)
+                }
+            case "Board":
+                // Cards can move from board to either hands 
+                if (to === "MyHand") {
+                    return animation
+                        .then(() => {
+                            setHand((h) => h.concat(card1))
+                            setBoard((b) => boardRemove(card1, b))
+                        })
+                        .then(wait)
+                } else {
+                    return animation
+                        .then(() => {
+                            setOpHand((h) => h.concat(card1))
+                            setBoard((b) => boardRemove(card1, b))
+                        })
+                        .then(wait)
+                }
+            case "OpHand":
+                if (to === "Board" && card2) {
+                    return animation
+                        .then(() => {
+                            setOpHand((h) => removeLast(h).concat(card1))
+                        })
+                        .then(wait)
+                        .then(() => {
+                            setBoard((b) => boardAdd(b, card1, card2))
+                        })
+                        .then(wait)
+                }
+                break
+        }
+
+        return animation
+    }
+
     useEffect(() => {
-    }, []) 
-
-    const [board, setBoard] = useState<[ICard, ICard?][]>([])
-
-    const [matchState, setMatchstate] = useState<MatchState>("PendingAttack")
-
-    const [attackOptions, setAttackOptions] = useState<CardValue[]>([])
+        engine.attacked(player, (card) => {
+            setBoard((b) => boardAdd(b, card))
+            setOpHand(removeLast)
+            setMatchState("PendingDefence")
+        });
+        engine.defended(player, (card, against) => {
+            console.log('defended', board.slice(0), card, against)
+            setBoard((b) => boardAdd(b, card, against))
+            setOpHand(removeLast)
+            setMatchState("PendingAttack")
+        });
+        engine.reversed(player, (card) => {
+            setBoard((b) => boardAdd(b, card))
+            setOpHand(removeLast)
+            setAttacking(false)
+            setMatchState("PendingDefence")
+        });
+        engine.drawn(player, (cards, opDrawn) => {
+            setHand((h) => h.concat(cards))
+            const ids = Array.from({length: opDrawn}, () => nextId.current++)
+            const blanks = ids.map((id) => blankCard(id))
+            setOpHand((h) => h.concat(blanks))
+            setMatchState(attacking ? "PendingAttack" : "PendingDefence")
+        })
+        engine.conceded(player, () => {
+            const cards = board
+                .flat()
+                .filter((c) => c !== undefined)
+            setOpHand((h) => h.concat(cards))
+            setBoard([])
+            setMatchState("PendingGrant")
+            setAttackOptions(new Set())
+        })
+        engine.finished(player, () => {
+            setAttacking(true)
+            setBoard([])
+            setMatchState("PendingAttack")
+            setAttackOptions(new Set())
+        })
+        engine.granted(player, (cards) => {
+            setHand((h) => h.concat(cards))
+            setOpHand((h) => removeLast(h, -cards.length))
+            setMatchState("Wait")
+        })
+        engine.start()
+    }, [board])
 
     function attack(card: ICard): boolean {
-        console.log('Attack', card)
         if (!attacking) {
             console.warn("Defender cannot attack")
             return false
         }
 
-        if (attackOptions.length > 0 && !attackOptions.includes(card.value)) {
+        if (attackOptions.size > 0 && !attackOptions.has(card.value)) {
             console.warn("Attacker must attack with valid card value")
             console.warn('options:', attackOptions)
             return false
         }
 
-        setAttackOptions((ao) => ao.concat(card.value))
-        setBoard((b) => b.concat([[card, undefined]]))
+        setAttackOptions((ao) => new Set(ao).add(card.value))
+        setMatchState("Wait")
+        setBoard((b) => boardAdd(b, card))
         setHand((h) => removeCard(h, card))
 
-        // TODO Debug
-        setAttacking(false)
+        engine.attack(player, card)
 
         return true
     }
@@ -66,13 +181,34 @@ function useGameState(): GameState {
             return false
         }
 
-        setBoard((b) => { const c = b.slice(0); c[i][1] = card; return c })
+        engine.defend(player, card, against)
+        setBoard((b) => boardAdd(b, card, against))
         setHand((h) => removeCard(h, card))
+        setMatchState("Wait")
 
-        setAttackOptions((ao) => ao.concat(card.value))
+        return true
+    }
 
-        // TODO Debug
-        setAttacking(true)
+    function reverse(card: ICard): boolean {
+        if (attacking) {
+            console.warn("Attacker cannot reverse")
+            return false
+        }
+
+        if (board.length > 1 || board[0][1] !== undefined) {
+            console.warn("Board state too advanced to reverse")
+            return false
+        }
+
+        if (board[0][0].value !== card.value) {
+            console.warn("Can only reverse same value cards")
+            return false
+        }
+
+        engine.reverse(player, card)
+        setBoard((b) => boardAdd(b, card))
+        setHand((h) => removeCard(h, card))
+        setMatchState("Wait")
 
         return true
     }
@@ -83,6 +219,17 @@ function useGameState(): GameState {
             return false
         }
 
+        const cards = board
+            .flat()
+            .filter((c) => c != undefined)
+            .map(() => blankCard(nextId.current++))
+        setHand((h) => h.concat(cards))
+        setBoard([])
+        setMatchState("Wait")
+
+        engine.concede(player)
+
+
         return true
     }
 
@@ -91,6 +238,29 @@ function useGameState(): GameState {
             console.warn("Defender cannot finish")
             return false
         }
+
+        setBoard([])
+        setAttacking(false)
+        setMatchState("Wait")
+
+        engine.finish(player)
+
+        return true
+    }
+
+    function grantEnd(): boolean {
+        const blanks = toGrant.map(() => blankCard(nextId.current++))
+        setOpHand((h) => h.concat(blanks))
+        setToGrant([])
+        setBoard([])
+        setMatchState("PendingAttack")
+
+        return true
+    }
+
+    function grant(card: ICard): boolean {
+        setBoard((b) => boardAdd(b, card))
+        setToGrant((g) => g.concat(card))
 
         return true
     }
@@ -104,15 +274,17 @@ function useGameState(): GameState {
 
         // Card states
         hand,
+        opHand,
         board,
-        deck,
 
         // Interaction
-        draw,
         attack,
         defend,
+        reverse,
         concede,
         finish,
+        grant,
+        grantEnd
     }
 }
 

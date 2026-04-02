@@ -7,18 +7,18 @@ interface CardProps extends ICard {
     lock?: boolean
 }
 
-function Card({suit, value, faceDown=false, lock=false }: CardProps) {
+function Card({suit, value, id, faceDown=false, lock=false }: CardProps) {
     const {ref} = useDraggable({
-        id: cardToId(suit, value),
-        data: {suit, value},
+        id: cardToId(suit, value, id),
+        data: {suit, value, id},
         disabled: faceDown || lock,
     })
 
     return (
-        <motion.div className="card" ref={ref} layoutId={cardToId(suit, value)} layout style={{}}>
+        <motion.div className="card" ref={ref} layoutId={cardToId(suit, value, id)} layout style={{}}>
             {!faceDown
-                ? <img src={`/cards/${cardToFile(suit, value)}`} alt={cardToId(suit, value)} />
-                : <img src={`/cards/card_back.png`} alt={cardToId(suit, value)} />
+                ? <img src={`/cards/${cardToFile(suit, value)}`} alt={cardToId(suit, value, id)} />
+                : <img src={`/cards/card_back.png`} alt={cardToId(suit, value, id)} />
             }
         </motion.div>
     )
