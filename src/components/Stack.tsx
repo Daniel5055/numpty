@@ -18,8 +18,10 @@ function Stack({attack, defence}: StackProps) {
 
     return (
         <div className="stack" ref={ref}>
-            <Card {...attack} key={cardToId(attack.suit, attack.value)} lock={true} />
-            {defence && <Card {...defence} key={cardToId(defence.suit, defence.value)} lock={true} />}
+            <div>
+                <Card {...attack} key={cardToId(attack.suit, attack.value)} lock={true} />
+                {defence && <Card {...defence} key={cardToId(defence.suit, defence.value)} lock={true} />}
+            </div>
         </div>
     )
 

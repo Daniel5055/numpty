@@ -19,7 +19,7 @@ export interface GameState {
     concede: () => boolean
     finish: () => boolean
     grant: (card: ICard) => boolean
-    grantEnd: (card?: ICard) => Promise<void>
+    grantEnd: (card?: ICard) => boolean
 }
 
 export type CardLocation = "Deck" | "Board" | "OpHand" | "MyHand"

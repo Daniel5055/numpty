@@ -1,4 +1,4 @@
-import { CARD_SUITS, CARD_VALUES, cardToId, type ICard } from "../utils/card"
+import { cardToId, type ICard } from "../utils/card"
 import Card from "./Card"
 
 interface DrawPile {

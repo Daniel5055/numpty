@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {  blankCard,  removeCard, removeLast, type CardValue, type ICard } from "../utils/card";
 import { type MatchState, type GameState } from "../utils/game";
 import type { Engine } from "../utils/engines/engine";
 import { boardAdd, boardRemove, boardUnique, boardUnresolved } from "../utils/board";
 import _ from "lodash";
+import ContextManager from "../utils/contextManager";
 
 function useGameState(player: string ,engine: Engine): GameState {
     const nextId = useRef(0)
@@ -12,7 +13,7 @@ function useGameState(player: string ,engine: Engine): GameState {
 
     const [toGrant, setToGrant] = useState<ICard[]>([])
 
-    const aContext = useRef<Promise<void>>(Promise.resolve())
+    const cmRef = useRef<ContextManager>(new ContextManager())
 
     const [hand, setHand] = useState<ICard[]>([])
     const [deck, setDeck] = useState<ICard | undefined>(undefined)
@@ -24,132 +25,120 @@ function useGameState(player: string ,engine: Engine): GameState {
 
     const [attackOptions, setAttackOptions] = useState<Set<CardValue>>(new Set())
 
-    function drawCards(animation: Promise<void>, cards: ICard[], opDrawn: number, first: boolean) {
-        let ac = animation
+    function drawCards(cm: ContextManager, cards: ICard[], opDrawn: number, first: boolean) {
         let left = opDrawn
-        if (!first && left > 0) {
-            left--;
+
+        // Drawing a blank card
+        const drawBlank = (_cm: ContextManager) => {
             const blank = blankCard(nextId.current++)
-            ac = ac
+            return _cm
                 .then(() => setDeck(blank))
-                .then(wait)
+                .wait()
                 .then(() => {
                     setDeck(undefined)
                     setOpHand((h) => h.concat(blank))
                 })
-                .then(wait)
-        }
-        for (let i = 0; i < cards.length; i++) {
-                ac = ac
-                    .then(() => setDeck(cards[i]))
-                    .then(wait)
-                    .then(() => {
-                        setDeck(undefined)
-                        setHand((h) => h.concat(cards[i]))
-                    })
-                    .then(wait)
+                .wait()
+        } 
 
-                if (left > 0) {
-                    left--
-                    const blank = blankCard(nextId.current++)
-                    ac = ac
-                        .then(() => setDeck(blank))
-                        .then(wait)
-                        .then(() => {
-                            setDeck(undefined)
-                            setOpHand((h) => h.concat(blank))
-                        })
-                        .then(wait)
-                }
+        // Draw op card if not first
+        if (!first && left > 0) {
+            left--;
+            cm.queue(drawBlank)
+        }
+
+        // Draw cards until and alternate with op if possible
+        for (let i = 0; i < cards.length; i++) {
+            cm
+                .then(() => setDeck(cards[i]))
+                .wait()
+                .then(() => {
+                    setDeck(undefined)
+                    setHand((h) => h.concat(cards[i]))
+                })
+                .wait()
+
+            if (left > 0) {
+                left--
+                cm.queue(drawBlank)
+            }
         }
 
         while (left > 0) {
             left--
-            const blank = blankCard(nextId.current++)
-            ac = ac
-                .then(() => setDeck(blank))
-                .then(wait)
-                .then(() => {
-                    setDeck(undefined)
-                    setOpHand((h) => h.concat(blank))
-                })
-                .then(wait)
+            cm.queue(drawBlank)
         }
         
-        return ac
+        return cm
     }
 
-    function playCard(animation: Promise<void>, card1: ICard, card2?: ICard) {
-        return animation
-            .then(() => {
-                setOpHand((h) => removeLast(h).concat(card1))
-            })
-            .then(wait)
+    function playCard(cm: ContextManager, card1: ICard, card2?: ICard) {
+        return cm
+            .then(() => setOpHand((h) => removeLast(h).concat(card1)))
+            .wait()
             .then(() => {
                 setOpHand((h) => removeLast(h))
                 setBoard((b) => boardAdd(b, card1, card2))
             })
-            .then(wait)
+            .wait()
     }
 
-    function opTakeBoard(animation: Promise<void>, except?: ICard) {
+    function opTakeBoard(cm: ContextManager, except?: ICard) {
         const cards = _.reverse(_.zip.apply(_, board)).flat().filter((c) => c !== undefined && c !== except) as ICard[]
 
-        return animation
+        return cm
             .then(() => {
                 setOpHand((h) => h.concat(cards))
                 setBoard((b) => cards.reduce((b1, card) => boardRemove(card, b1), b))
             })
-            .then(waitLong)
+            .wait(400)
             .then(() => setOpHand((h) => removeLast(h, cards.length).concat(cards.map(() => blankCard(nextId.current++)))))
-            .then(wait)
+            .wait()
     }
 
-    function finishBoard(animation: Promise<void>) {
+    const finishBoard = useCallback((cm: ContextManager) => {
         const cards = _.reverse(_.zip.apply(_, board)).flat().filter((c) => c !== undefined) as ICard[]
 
-        return animation
+        return cm
             .then(() => {
                 setDiscard((d) => d.concat(cards))
                 setBoard((b) => cards.reduce((b1, card) => boardRemove(card, b1), b))
             })
-            .then(wait)
-    }
-
-    // Do animation then wait
-    function wait(): Promise<void> {
-        return new Promise((res) => setTimeout(res, 100))
-    }
-
-    function waitLong(): Promise<void> {
-        return new Promise((res) => setTimeout(res, 400))
-    }
+            .wait()
+    }, [board])
 
     useEffect(() => {
         engine.attacked(player, (card) => {
-            aContext.current = playCard(aContext.current, card)
-            setMatchState("PendingDefence")
+            cmRef.current
+                .then(() => setMatchState("Wait"))
+                .queue((cm) => playCard(cm, card))
+                .then(() => setMatchState("PendingDefence"))
         });
         engine.defended(player, (card, against) => {
-            console.log('defended', board.slice(0), card, against)
-            aContext.current = playCard(aContext.current, card, against)
+            cmRef.current
+                .then(() => setMatchState("Wait"))
+                .queue((cm) => playCard(cm, card, against))
                 .then(() => {
-                    setAttackOptions((ao) => new Set(ao).add(card.value))
-                    console.log('unresolved', boardUnresolved(board))
-                    if (boardUnresolved(board).length > 1) {
-                        setMatchState("PendingExtraAttack")
-                    } else {
-                        setMatchState("PendingAttack")
-                    }
+                    // Hacky way to access state within nested callback
+                    setBoard((b) => {
+                        setAttackOptions((ao) => new Set(ao).add(card.value))
+                        if (boardUnresolved(b).length > 1) {
+                            setMatchState("PendingExtraAttack")
+                        } else {
+                            setMatchState("PendingAttack")
+                        }
+
+                        return b
+                    })
                 })
         });
         engine.reversed(player, (card) => {
-            aContext.current = playCard(aContext.current, card)
+            cmRef.current.queue((cm) => playCard(cm, card))
             setAttacking(false)
             setMatchState("PendingDefence")
         });
         engine.drawn(player, (cards, opDrawn, first) => {
-            aContext.current = drawCards(aContext.current, cards, opDrawn, first)
+            cmRef.current.queue((cm) => drawCards(cm, cards, opDrawn, first))
             setMatchState(attacking ? "PendingAttack" : "PendingDefence")
         })
         engine.conceded(player, () => {
@@ -159,7 +148,7 @@ function useGameState(player: string ,engine: Engine): GameState {
         })
         engine.finished(player, () => {
             setAttacking(true)
-            aContext.current = finishBoard(aContext.current)
+            cmRef.current.queue((cm) => finishBoard(cm))
             setMatchState("PendingAttack")
             setAttackOptions(new Set())
         })
@@ -176,7 +165,7 @@ function useGameState(player: string ,engine: Engine): GameState {
             setBoard([])
         })
         engine.start()
-    }, [board])
+    }, [attacking, board, engine, finishBoard, player])
 
     function attack(card: ICard): boolean {
         if (!attacking) {
@@ -275,7 +264,7 @@ function useGameState(player: string ,engine: Engine): GameState {
         }
 
         setAttacking(false)
-        aContext.current = finishBoard(aContext.current)
+        cmRef.current.queue((cm) => finishBoard(cm))
         setMatchState("Wait")
 
         engine.finish(player)
@@ -283,14 +272,12 @@ function useGameState(player: string ,engine: Engine): GameState {
         return true
     }
 
-    function grantEnd(card?: ICard): Promise<void> {
+    function grantEnd(card?: ICard): boolean {
         setToGrant([])
         if (!card) {
-
             setMatchState("PendingAttack")
-
         } else {
-            aContext.current = aContext.current.then(waitLong)
+            cmRef.current.wait(400)
             setAttackOptions((ao) => new Set(ao).add(card.value))
             setMatchState("Wait")
             setBoard((b) => boardAdd(b, card))
@@ -299,14 +286,16 @@ function useGameState(player: string ,engine: Engine): GameState {
 
         }
 
-        aContext.current = opTakeBoard(aContext.current, card).then(() => {
-            engine.grant(player, toGrant)
-            if (card) {
-                engine.attack(player, card)
-            }
-        })
+        cmRef.current
+            .queue((cm) => opTakeBoard(cm, card)
+            .then(() => {
+                engine.grant(player, toGrant)
+                if (card) {
+                    engine.attack(player, card)
+                }
+            }))
 
-        return aContext.current
+        return true
     }
 
     function grant(card: ICard): boolean {
