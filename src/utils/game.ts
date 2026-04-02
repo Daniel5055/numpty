@@ -1,6 +1,12 @@
 import type { Board, ICard } from "./card"
 
-export type MatchState = "PendingAttack" | "PendingExtraAttack" | "PendingDefence" | "ReversalPendingDefence" | "Wait" | "PendingGrant"
+export type MatchState =
+    "PendingAttack" |
+    "PendingExtraAttack" |
+    "PendingDefence" |
+    "PendingGrant" |
+    "Wait" |
+    "GameOver"
 
 export interface GameState {
     attacking: boolean

@@ -28,6 +28,8 @@ export const defaultHandlers: Handlers = {
 
 }
 
+export type MkEngine = (id1: string, id2: string, trump: CardSuit) => Engine
+
 export interface Engine {
     trump: CardSuit
 

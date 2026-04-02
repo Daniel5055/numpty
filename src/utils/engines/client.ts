@@ -188,3 +188,7 @@ export class ClientEngine implements Engine {
         this.handlers[player].granted = onGranted
     }
 }
+
+export function mkClientEngine(id1: string, id2: string, trump: CardSuit): ClientEngine {
+    return new ClientEngine(id1, id2, trump)
+}

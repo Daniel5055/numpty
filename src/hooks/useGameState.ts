@@ -1,30 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {  blankCard,  removeCard, removeLast, type CardValue, type ICard } from "../utils/card";
+import {  blankCard,  removeCard, removeLast, type CardSuit, type CardValue, type ICard } from "../utils/card";
 import { type MatchState, type GameState } from "../utils/game";
-import type { Engine } from "../utils/engines/engine";
+import type { Engine, MkEngine } from "../utils/engines/engine";
 import { boardAdd, boardRemove, boardUnique, boardUnresolved } from "../utils/board";
 import _ from "lodash";
 import ContextManager from "../utils/contextManager";
+import SimpleAi from "../utils/ai/simpleAi";
 
-function useGameState(player: string ,engine: Engine): GameState {
+function useGameState(id1: string, id2: string, trump: CardSuit, buildEngine: MkEngine): GameState {
     const nextId = useRef(0)
 
-    const [attacking, setAttacking] = useState<boolean>(true)
-
-    const [toGrant, setToGrant] = useState<ICard[]>([])
-
+    // Context management handles animations and state changes in order
     const cmRef = useRef<ContextManager>(new ContextManager())
+    const { current: engine } = useRef<Engine>(buildEngine(id1, id2, trump))
 
+    // State controlling hands, board, deck and discards, including animations
     const [hand, setHand] = useState<ICard[]>([])
     const [deck, setDeck] = useState<ICard | undefined>(undefined)
     const [discard, setDiscard] = useState<ICard[]>([])
     const [opHand, setOpHand] = useState<ICard[]>([])
     const [board, setBoard] = useState<[ICard, ICard?][]>([])
 
+    // User facing state
     const [matchState, setMatchState] = useState<MatchState>("Wait")
+    const [attacking, setAttacking] = useState<boolean>(true)
 
+    // Internal state
     const [attackOptions, setAttackOptions] = useState<Set<CardValue>>(new Set())
+    const [toGrant, setToGrant] = useState<ICard[]>([])
 
+    // Animations
     function drawCards(cm: ContextManager, cards: ICard[], opDrawn: number, first: boolean) {
         let left = opDrawn
 
@@ -84,7 +89,7 @@ function useGameState(player: string ,engine: Engine): GameState {
     }
 
     function opTakeBoard(cm: ContextManager, except?: ICard) {
-        const cards = _.reverse(_.zip.apply(_, board)).flat().filter((c) => c !== undefined && c !== except) as ICard[]
+        const cards = _.reverse(_.zip(...board)).flat().filter((c) => c !== undefined && c !== except) as ICard[]
 
         return cm
             .then(() => {
@@ -97,7 +102,7 @@ function useGameState(player: string ,engine: Engine): GameState {
     }
 
     const finishBoard = useCallback((cm: ContextManager) => {
-        const cards = _.reverse(_.zip.apply(_, board)).flat().filter((c) => c !== undefined) as ICard[]
+        const cards = _.reverse(_.zip(...board)).flat().filter((c) => c !== undefined) as ICard[]
 
         return cm
             .then(() => {
@@ -107,14 +112,17 @@ function useGameState(player: string ,engine: Engine): GameState {
             .wait()
     }, [board])
 
+    // Assign engine handlers
     useEffect(() => {
-        engine.attacked(player, (card) => {
+        new SimpleAi(id2, engine)
+
+        engine.attacked(id1, (card) => {
             cmRef.current
                 .then(() => setMatchState("Wait"))
                 .queue((cm) => playCard(cm, card))
                 .then(() => setMatchState("PendingDefence"))
         });
-        engine.defended(player, (card, against) => {
+        engine.defended(id1, (card, against) => {
             cmRef.current
                 .then(() => setMatchState("Wait"))
                 .queue((cm) => playCard(cm, card, against))
@@ -132,27 +140,27 @@ function useGameState(player: string ,engine: Engine): GameState {
                     })
                 })
         });
-        engine.reversed(player, (card) => {
+        engine.reversed(id1, (card) => {
             cmRef.current.queue((cm) => playCard(cm, card))
             setAttacking(false)
             setMatchState("PendingDefence")
         });
-        engine.drawn(player, (cards, opDrawn, first) => {
+        engine.drawn(id1, (cards, opDrawn, first) => {
             cmRef.current.queue((cm) => drawCards(cm, cards, opDrawn, first))
             setMatchState(attacking ? "PendingAttack" : "PendingDefence")
         })
-        engine.conceded(player, () => {
+        engine.conceded(id1, () => {
             console.log('ai conceeded')
             setMatchState("PendingGrant")
             setAttackOptions(new Set())
         })
-        engine.finished(player, () => {
+        engine.finished(id1, () => {
             setAttacking(true)
             cmRef.current.queue((cm) => finishBoard(cm))
             setMatchState("PendingAttack")
             setAttackOptions(new Set())
         })
-        engine.granted(player, (cards) => {
+        engine.granted(id1, (cards) => {
             const bCards = board
                 .flat()
                 .filter((c) => c !== undefined)
@@ -165,7 +173,9 @@ function useGameState(player: string ,engine: Engine): GameState {
             setBoard([])
         })
         engine.start()
-    }, [attacking, board, engine, finishBoard, player])
+    }, [attacking, board, engine, finishBoard, id1, id2])
+
+    // Interaction
 
     function attack(card: ICard): boolean {
         if (!attacking) {
@@ -184,7 +194,7 @@ function useGameState(player: string ,engine: Engine): GameState {
         setBoard((b) => boardAdd(b, card))
         setHand((h) => removeCard(h, card))
 
-        engine.attack(player, card)
+        engine.attack(id1, card)
 
         return true
     }
@@ -204,7 +214,7 @@ function useGameState(player: string ,engine: Engine): GameState {
             return false
         }
 
-        engine.defend(player, card, against)
+        engine.defend(id1, card, against)
         setBoard((b) => boardAdd(b, card, against))
         setHand((h) => removeCard(h, card))
 
@@ -233,7 +243,7 @@ function useGameState(player: string ,engine: Engine): GameState {
             return false
         }
 
-        engine.reverse(player, card)
+        engine.reverse(id1, card)
         setBoard((b) => boardAdd(b, card))
         setHand((h) => removeCard(h, card))
         setMatchState("Wait")
@@ -251,7 +261,7 @@ function useGameState(player: string ,engine: Engine): GameState {
         setMatchState("Wait")
         setAttackOptions(new Set())
 
-        engine.concede(player)
+        engine.concede(id1)
 
 
         return true
@@ -267,7 +277,7 @@ function useGameState(player: string ,engine: Engine): GameState {
         cmRef.current.queue((cm) => finishBoard(cm))
         setMatchState("Wait")
 
-        engine.finish(player)
+        engine.finish(id1)
 
         return true
     }
@@ -282,16 +292,14 @@ function useGameState(player: string ,engine: Engine): GameState {
             setMatchState("Wait")
             setBoard((b) => boardAdd(b, card))
             setHand((h) => removeCard(h, card))
-
-
         }
 
         cmRef.current
             .queue((cm) => opTakeBoard(cm, card)
             .then(() => {
-                engine.grant(player, toGrant)
+                engine.grant(id1, toGrant)
                 if (card) {
-                    engine.attack(player, card)
+                    engine.attack(id1, card)
                 }
             }))
 
@@ -307,9 +315,8 @@ function useGameState(player: string ,engine: Engine): GameState {
     }
 
     return {
-        matchState,
-
         attacking,
+        matchState,
 
         // Card states
         hand,
