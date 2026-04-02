@@ -116,6 +116,7 @@ export class ClientEngine implements Engine {
     }
 
     reverse(player: string, card: ICard) {
+        setTimeout(() => {
         if (player === this.attacker) {
             throw new Error("Attacker cannot reverse")
         }
@@ -128,7 +129,7 @@ export class ClientEngine implements Engine {
         
         // Notify other player
         this.handlers[this.other(player)].reversed(card)
-
+        }, 100)
     }
     concede(player: string) {
         setTimeout(() => {
@@ -137,7 +138,7 @@ export class ClientEngine implements Engine {
             this.legalAttacks.clear()
 
             this.handlers[this.other(player)].conceded()
-        }, 10)
+        }, 100)
     }
     finish(player: string) {
         this.legalAttacks.clear()
@@ -153,13 +154,15 @@ export class ClientEngine implements Engine {
         }, 100)
     }
     grant(player: string, cards: ICard[]) {
-        for (const card of cards) {
-            this.hands[player] = removeCard(this.hands[player], card)
-        }
+        setTimeout(() => {
+            for (const card of cards) {
+                this.hands[player] = removeCard(this.hands[player], card)
+            }
 
-        this.hands[this.other(player)] = this.hands[this.other(player)].concat(cards)
+            this.hands[this.other(player)] = this.hands[this.other(player)].concat(cards)
 
-        this.handlers[this.other(player)].granted(cards)
+            this.handlers[this.other(player)].granted(cards)
+        }, 100)
     }
 
 

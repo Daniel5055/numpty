@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {  blankCard,  removeCard, removeLast, type CardValue, type ICard } from "../utils/card";
 import { type MatchState, type GameState } from "../utils/game";
 import type { Engine } from "../utils/engines/engine";
-import { boardAdd, boardRemove } from "../utils/board";
+import { boardAdd, boardRemove, boardUnique, boardUnresolved } from "../utils/board";
 import _ from "lodash";
 
 function useGameState(player: string ,engine: Engine): GameState {
@@ -133,8 +133,15 @@ function useGameState(player: string ,engine: Engine): GameState {
         engine.defended(player, (card, against) => {
             console.log('defended', board.slice(0), card, against)
             aContext.current = playCard(aContext.current, card, against)
-            setAttackOptions((ao) => new Set(ao).add(card.value))
-            setMatchState("PendingAttack")
+                .then(() => {
+                    setAttackOptions((ao) => new Set(ao).add(card.value))
+                    console.log('unresolved', boardUnresolved(board))
+                    if (boardUnresolved(board).length > 1) {
+                        setMatchState("PendingExtraAttack")
+                    } else {
+                        setMatchState("PendingAttack")
+                    }
+                })
         });
         engine.reversed(player, (card) => {
             aContext.current = playCard(aContext.current, card)
@@ -211,7 +218,12 @@ function useGameState(player: string ,engine: Engine): GameState {
         engine.defend(player, card, against)
         setBoard((b) => boardAdd(b, card, against))
         setHand((h) => removeCard(h, card))
-        setMatchState("Wait")
+
+        if (boardUnresolved(board).length === 0) {
+            setMatchState("Wait")
+        } else {
+            setMatchState("PendingDefence")
+        }
 
         return true
     }
@@ -222,7 +234,7 @@ function useGameState(player: string ,engine: Engine): GameState {
             return false
         }
 
-        if (board.length > 1 || board[0][1] !== undefined) {
+        if (boardUnique(board).length > 1 || boardUnresolved(board).length !== board.length) {
             console.warn("Board state too advanced to reverse")
             return false
         }
@@ -278,11 +290,21 @@ function useGameState(player: string ,engine: Engine): GameState {
             setMatchState("PendingAttack")
 
         } else {
-            attack(card)
             aContext.current = aContext.current.then(waitLong)
+            setAttackOptions((ao) => new Set(ao).add(card.value))
+            setMatchState("Wait")
+            setBoard((b) => boardAdd(b, card))
+            setHand((h) => removeCard(h, card))
+
+
         }
-        engine.grant(player, toGrant)
-        aContext.current = opTakeBoard(aContext.current, card)
+
+        aContext.current = opTakeBoard(aContext.current, card).then(() => {
+            engine.grant(player, toGrant)
+            if (card) {
+                engine.attack(player, card)
+            }
+        })
 
         return aContext.current
     }

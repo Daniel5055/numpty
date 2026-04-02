@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import './App.css'
 import { DragDropProvider } from '@dnd-kit/react'
 import Hand from './components/Hand'
-import { boardId, CARD_SUITS, type ICard } from './utils/card'
+import { blankCard, boardId, CARD_SUITS, type ICard } from './utils/card'
 import Board from './components/Board'
 import { AnimatePresence } from 'framer-motion'
 import useGameState from './hooks/useGameState'
@@ -41,7 +41,7 @@ function App() {
   return (
     <div id="container">
     <section id="left">
-      <Deck deck={deck ? [deck] : []} />
+      <Deck deck={deck ? [blankCard(-1), deck] : [blankCard(-1)]} />
     </section>
     <section id="right">
       <Deck deck={discard} />
@@ -92,7 +92,7 @@ function App() {
       {matchState === "PendingAttack" && <button onClick={finish}>Finish</button>}
       {matchState === "PendingDefence" && <button onClick={concede}>Concede</button>}
       {matchState === "PendingGrant" && <button onClick={() => grantEnd()}>Done Granting</button>}
-      {matchState === "Wait" && <button>Waiting</button>}
+      {(matchState === "Wait" || matchState === "PendingExtraAttack") && <button>Waiting</button>}
     </section>
     </div>
   )

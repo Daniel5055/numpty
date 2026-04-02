@@ -49,7 +49,9 @@ class SimpleAi {
         console.log(boardUnique(board))
 
         if (valid.length === 0) {
-            this.engine.finish(this.id)
+            if (boardUnresolved(board).length === 0) {
+                this.engine.finish(this.id)
+            } 
             return false
         } else {
             this.engine.attack(this.id, this.choose(valid))

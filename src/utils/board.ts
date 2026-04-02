@@ -38,6 +38,7 @@ export function boardAdd(board: Board, card: ICard, against?: ICard): Board {
 }
 
 export function boardUnresolved(board: Board): ICard[] {
+    console.log('bbbb', board)
     return board.filter(([,d]) => d === undefined).map(([a]) => a)
 }
 
