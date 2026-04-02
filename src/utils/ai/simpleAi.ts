@@ -24,7 +24,6 @@ class SimpleAi {
     }
 
     onDraw() {
-        console.log(this.engine.attacker)
         if (this.engine.attacker == this.id) {
             const card = this.choose(this.engine.hand(this.id))
             this.engine.attack(this.id, card)
@@ -33,7 +32,6 @@ class SimpleAi {
 
     onAttack(card: ICard): boolean {
         const valid = validDefence(card, this.engine.hand(this.id), this.engine.trump)
-        console.log('defend', valid, this.engine.hand(this.id))
         if (valid.length === 0) {
             this.engine.concede(this.id)
             return false
@@ -46,7 +44,6 @@ class SimpleAi {
     onDefend(): boolean {
         const board = this.engine.board()
         const valid = this.engine.hand(this.id).filter((c) => boardUnique(board).includes(c.value))
-        console.log(boardUnique(board))
 
         if (valid.length === 0) {
             if (boardUnresolved(board).length === 0) {
@@ -60,7 +57,6 @@ class SimpleAi {
     }
 
     onReverse(card: ICard): boolean {
-        console.log('reversed')
         const valid = this.engine.hand(this.id).filter((c) => c.value === card.value)
         if (valid.length === 0) {
             // Handle the attacks until we can't
@@ -69,7 +65,6 @@ class SimpleAi {
             for (let a = attacks[0], i = 0; i < attacks.length; a = attacks[++i]) {
                 result = this.onAttack(a)
                 if (!result) {
-                    this.engine.concede(this.id)
                     break
                 }
             }

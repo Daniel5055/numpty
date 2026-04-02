@@ -100,7 +100,6 @@ export class ClientEngine implements Engine {
     }
 
     defend(player: string, card: ICard, against: ICard) {
-        setTimeout(() => {
         if (player === this.attacker) {
             throw new Error("Attacker cannot defend")
         }
@@ -112,7 +111,6 @@ export class ClientEngine implements Engine {
         
         // Notify other player
         this.handlers[this.other(player)].defended(card, against)
-    },100)
     }
 
     reverse(player: string, card: ICard) {
@@ -142,7 +140,6 @@ export class ClientEngine implements Engine {
     }
     finish(player: string) {
         this.legalAttacks.clear()
-        console.log('finish')
         this.attacker = this.other(player)
 
         this.handlers[this.other(player)].finished()

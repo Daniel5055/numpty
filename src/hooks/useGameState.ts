@@ -126,46 +126,64 @@ function useGameState(id1: string, id2: string, trump: CardSuit, buildEngine: Mk
             cmRef.current
                 .then(() => setMatchState("Wait"))
                 .queue((cm) => playCard(cm, card, against))
-                .then(() => {
+                .then(() => new Promise((res) => {
                     // Hacky way to access state within nested callback
                     setBoard((b) => {
                         setAttackOptions((ao) => new Set(ao).add(card.value))
-                        if (boardUnresolved(b).length > 1) {
+                        if (boardUnresolved(b).length > 0) {
                             setMatchState("PendingExtraAttack")
                         } else {
                             setMatchState("PendingAttack")
                         }
 
+                        // Necessary to prevent race conditions
+                        res()
+
                         return b
                     })
-                })
+                }))
         });
         engine.reversed(id1, (card) => {
-            cmRef.current.queue((cm) => playCard(cm, card))
-            setAttacking(false)
-            setMatchState("PendingDefence")
+            cmRef.current
+                .queue((cm) => playCard(cm, card))
+                .then(() => {
+                    setAttacking(false)
+                    setMatchState("PendingDefence")
+                })
         });
         engine.drawn(id1, (cards, opDrawn, first) => {
-            cmRef.current.queue((cm) => drawCards(cm, cards, opDrawn, first))
-            setMatchState(attacking ? "PendingAttack" : "PendingDefence")
+            cmRef.current
+                .queue((cm) => drawCards(cm, cards, opDrawn, first))
+                // Must use setter access state from nested callabck
+                .then(() => new Promise((res) => setAttacking((attacking) => {
+                    setMatchState(attacking ? "PendingAttack" : "PendingDefence")
+
+                    // Necesary to avoid race conditions
+                    res()
+                    return attacking
+                })))
         })
         engine.conceded(id1, () => {
-            console.log('ai conceeded')
-            setMatchState("PendingGrant")
-            setAttackOptions(new Set())
+            cmRef.current.then(() => {
+                console.log('ai conceeded')
+                setMatchState("PendingGrant")
+                setAttackOptions(new Set())
+            })
         })
         engine.finished(id1, () => {
-            setAttacking(true)
-            cmRef.current.queue((cm) => finishBoard(cm))
-            setMatchState("PendingAttack")
-            setAttackOptions(new Set())
+            cmRef.current
+                .queue((cm) => finishBoard(cm))
+                .then(() => {
+                    setMatchState("PendingAttack")
+                    setAttackOptions(new Set())
+                    setAttacking(true)
+                })
         })
         engine.granted(id1, (cards) => {
             const bCards = board
                 .flat()
                 .filter((c) => c !== undefined)
             setHand((h) => h.concat(cards).concat(bCards))
-            console.log('granted', cards)
             if (cards.length > 0) {
                 setOpHand((h) => removeLast(h, cards.length))
             }

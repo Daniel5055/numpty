@@ -23,7 +23,7 @@ export function boardAdd(board: Board, card: ICard, against?: ICard): Board {
     const i = board.findIndex(([a, d]) => equalCards(a, against) && !d)
 
     if (i === -1) {
-        console.log(card, against, board.slice())
+        console.error(card, against, board.slice())
         throw new Error("cannot add to board")
     }
 
@@ -38,13 +38,11 @@ export function boardAdd(board: Board, card: ICard, against?: ICard): Board {
 }
 
 export function boardUnresolved(board: Board): ICard[] {
-    console.log('bbbb', board)
     return board.filter(([,d]) => d === undefined).map(([a]) => a)
 }
 
 export function boardUnique(board: Board): CardValue[] {
     const vals = board.flatMap(([a, d]) => [a.value, d?.value]).filter((c) => c !== undefined)
-    console.log('vals', board, vals)
     return [...new Set(vals)]
 }
 
@@ -54,4 +52,8 @@ export function validDefence(card: ICard, cards: ICard[], trump: CardSuit): ICar
     } else {
         return cards.filter((c) => c.suit === trump || (c.suit === card.suit && greaterValue(c.value, card.value)))
     }
+}
+
+export function boardReversible(board: Board) {
+    return boardUnresolved(board).length === board.length && boardUnique(board).length === 1
 }

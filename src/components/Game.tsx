@@ -1,7 +1,7 @@
 import { DragDropProvider } from '@dnd-kit/react'
 import { AnimatePresence } from 'framer-motion'
 import useGameState from '../hooks/useGameState'
-import { boardUnresolved, validDefence, boardUnique } from '../utils/board'
+import { validDefence, boardUnique, boardReversible } from '../utils/board'
 import { CARD_SUITS, blankCard, type ICard, boardId } from '../utils/card'
 import Board from './Board'
 import Deck from './Deck'
@@ -35,8 +35,9 @@ function Game({ mkEngine }: GameProps) {
     grantEnd,
   } = useGameState(id1, id2, trump, mkEngine)
 
-  const boardDroppable = (!attacking && board.length === 1)
-    || attacking
+  const boardDroppable =
+    (!attacking && boardReversible(board)) ||
+    attacking
 
   return (
     <div id="container">
@@ -56,17 +57,15 @@ function Game({ mkEngine }: GameProps) {
         const card = source?.data as ICard
         const targetCard = target?.data as ICard | undefined
 
-        console.log('target', target?.id)
-
         if (matchState === "PendingAttack") {
           if (target?.id === boardId) {
 
               attack(card)
             }
         } else if (matchState === "PendingDefence") {
-          const valid = boardUnresolved(board)
-          if (board.length === 1 && valid.length === 1 && target?.id === boardId) {
-            if (card.value === valid[0].value) {
+          if (target?.id === boardId && boardReversible(board)) {
+            const valid = boardUnique(board)
+            if (card.value === valid[0]) {
               reverse(card)
             }
           } else if (target?.id !== boardId && targetCard) {
@@ -78,7 +77,6 @@ function Game({ mkEngine }: GameProps) {
           if (target?.id === boardId) {
             const valid = boardUnique(board)
             if (valid.includes(card.value)) {
-              console.log('grantin', card)
               grant(card)
             } else {
               grantEnd(card)
