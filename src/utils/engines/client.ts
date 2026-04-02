@@ -148,7 +148,11 @@ export class ClientEngine implements Engine {
 
         this.handlers[this.other(player)].finished()
 
-        this.drawStep(player)
+        this.#board = []
+
+        setTimeout(() => {
+            this.drawStep(player)
+        }, 100)
     }
     grant(player: string, cards: ICard[]) {
         for (const card of cards) {

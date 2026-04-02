@@ -10,7 +10,6 @@ interface BoardProps {
 function Board({ board, attacking }: BoardProps) {
     const {ref} = useDroppable({
         id: boardId,
-        disabled: !attacking
     })
 
     return (

@@ -43,7 +43,7 @@ export function boardUnresolved(board: Board): ICard[] {
 
 export function boardUnique(board: Board): CardValue[] {
     const vals = board.flatMap(([a, d]) => [a.value, d?.value]).filter((c) => c !== undefined)
-    console.log('vals', vals)
+    console.log('vals', board, vals)
     return [...new Set(vals)]
 }
 

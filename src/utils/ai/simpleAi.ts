@@ -1,18 +1,16 @@
-import { Random } from "random-js";
+import { MersenneTwister19937, Random } from "random-js";
 import { type ICard } from "../card";
 import type { Engine } from "../engines/engine";
 import { boardUnique, boardUnresolved, validDefence } from "../board";
 
 class SimpleAi {
     public engine: Engine
-    private attacking: boolean
 
-    private random = new Random()
+    private random = new Random(MersenneTwister19937.seedWithArray([0, 1]))
 
     private id: string
 
-    constructor(id: string, engine: Engine, start: boolean) {
-        this.attacking = start
+    constructor(id: string, engine: Engine) {
         this.engine = engine
         engine.drawn(id, this.onDraw.bind(this))
         engine.attacked(id, this.onAttack.bind(this))
@@ -60,12 +58,19 @@ class SimpleAi {
     }
 
     onReverse(card: ICard): boolean {
+        console.log('reversed')
         const valid = this.engine.hand(this.id).filter((c) => c.value === card.value)
         if (valid.length === 0) {
             // Handle the attacks until we can't
             const attacks = boardUnresolved(this.engine.board())
             let result = false
-            for (let a = attacks[0], i = 0, result = this.onAttack(a); result && i < attacks.length; a = attacks[++i], result = this.onAttack(a)) {}
+            for (let a = attacks[0], i = 0; i < attacks.length; a = attacks[++i]) {
+                result = this.onAttack(a)
+                if (!result) {
+                    this.engine.concede(this.id)
+                    break
+                }
+            }
             return result
         } else {
             this.engine.reverse(this.id, this.choose(valid))

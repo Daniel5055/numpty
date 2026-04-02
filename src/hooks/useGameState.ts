@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { allCards,  blankCard,  removeCard, removeLast, type CardValue, type ICard } from "../utils/card";
+import {  blankCard,  removeCard, removeLast, type CardValue, type ICard } from "../utils/card";
 import { type MatchState, type GameState, type CardMove, type CardLocation } from "../utils/game";
 import type { Engine } from "../utils/engines/engine";
-import { i } from "framer-motion/client";
 import { boardAdd, boardRemove } from "../utils/board";
 
 function useGameState(player: string ,engine: Engine): GameState {
@@ -106,6 +105,7 @@ function useGameState(player: string ,engine: Engine): GameState {
             console.log('defended', board.slice(0), card, against)
             setBoard((b) => boardAdd(b, card, against))
             setOpHand(removeLast)
+            setAttackOptions((ao) => new Set(ao).add(card.value))
             setMatchState("PendingAttack")
         });
         engine.reversed(player, (card) => {
@@ -122,11 +122,6 @@ function useGameState(player: string ,engine: Engine): GameState {
             setMatchState(attacking ? "PendingAttack" : "PendingDefence")
         })
         engine.conceded(player, () => {
-            const cards = board
-                .flat()
-                .filter((c) => c !== undefined)
-            setOpHand((h) => h.concat(cards))
-            setBoard([])
             setMatchState("PendingGrant")
             setAttackOptions(new Set())
         })
@@ -137,9 +132,16 @@ function useGameState(player: string ,engine: Engine): GameState {
             setAttackOptions(new Set())
         })
         engine.granted(player, (cards) => {
-            setHand((h) => h.concat(cards))
-            setOpHand((h) => removeLast(h, -cards.length))
+            const bCards = board
+                .flat()
+                .filter((c) => c !== undefined)
+            setHand((h) => h.concat(cards).concat(bCards))
+            console.log('granted', cards)
+            if (cards.length > 0) {
+                setOpHand((h) => removeLast(h, cards.length))
+            }
             setMatchState("Wait")
+            setBoard([])
         })
         engine.start()
     }, [board])
@@ -209,6 +211,7 @@ function useGameState(player: string ,engine: Engine): GameState {
         setBoard((b) => boardAdd(b, card))
         setHand((h) => removeCard(h, card))
         setMatchState("Wait")
+        setAttacking(true)
 
         return true
     }
@@ -219,13 +222,8 @@ function useGameState(player: string ,engine: Engine): GameState {
             return false
         }
 
-        const cards = board
-            .flat()
-            .filter((c) => c != undefined)
-            .map(() => blankCard(nextId.current++))
-        setHand((h) => h.concat(cards))
-        setBoard([])
         setMatchState("Wait")
+        setAttackOptions(new Set())
 
         engine.concede(player)
 
@@ -250,10 +248,15 @@ function useGameState(player: string ,engine: Engine): GameState {
 
     function grantEnd(): boolean {
         const blanks = toGrant.map(() => blankCard(nextId.current++))
-        setOpHand((h) => h.concat(blanks))
         setToGrant([])
         setBoard([])
         setMatchState("PendingAttack")
+
+        const cards = board
+            .flat()
+            .filter((c) => c != undefined)
+            .map(() => blankCard(nextId.current++))
+        setOpHand((h) => h.concat(cards).concat(blanks))
 
         return true
     }
