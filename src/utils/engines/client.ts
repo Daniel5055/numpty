@@ -1,30 +1,39 @@
+import type { Random } from "random-js";
 import { boardAdd } from "../board";
-import { allCards, removeCard, type Board, type CardSuit, type CardValue, type ICard } from "../card";
-import { draw, shuffle } from "../deck";
-import { defaultHandlers, type AttackHandler, type DefendHandler, type DrawHandler, type EndHandler, type Engine, type GrantHandler, type Handlers, type ReverseHandler } from "./engine";
+import { allCards, removeCard, type Board, type CardValue, type ICard } from "../card";
+import { draw } from "../deck";
+import { defaultHandlers, type Engine, type Handlers } from "./engine";
 
 export class ClientEngine implements Engine {
     public player1: string
     public player2: string
-
     public attacker: string
 
-    public trump: CardSuit
-
+    // To make start function idempotent
     private started = false
 
+    // board state
     private hands: Record<string, ICard[]> = {}
     #board: Board = []
-    private deck: ICard[] = shuffle(allCards)
+    private deck: ICard[] = allCards
 
+    // Extra info
     private legalAttacks: Set<CardValue> = new Set()
-
     public round: number = 1
-
     private handlers: Record<string, Handlers> = {}
+    private random: Random
+    #trumpCard?: ICard
 
     private other(player: string) {
         return player === this.player1 ? this.player2 : this.player1
+    }
+
+    get trumpCard(): ICard {
+        if (!this.#trumpCard) {
+            throw Error("Cannot get trump before start")
+        }
+
+        return this.#trumpCard
     }
 
     private drawStep(player: string) {
@@ -58,8 +67,7 @@ export class ClientEngine implements Engine {
         return this.#board
     }
 
-    constructor(player1: string, player2: string, trump: CardSuit) {
-        this.trump = trump
+    constructor(player1: string, player2: string, random: Random) {
         this.player1 = player1
         this.player2 = player2
         this.attacker = player1
@@ -69,13 +77,22 @@ export class ClientEngine implements Engine {
 
         this.handlers[player1] = { ...defaultHandlers }
         this.handlers[player2] = { ...defaultHandlers }
+
+        this.random = random
+
+        // Shuffle the deck
+        this.random.shuffle(this.deck)
     }
 
-    start() {
+    start(): ICard {
         if (!this.started) {
             this.started = true
             this.drawStep(this.attacker)
+
+            this.#trumpCard = draw(this.deck)
         }
+
+        return this.trumpCard
     }
 
     attack(player: string, card: ICard) {
@@ -162,30 +179,11 @@ export class ClientEngine implements Engine {
         }, 100)
     }
 
-
-    attacked(player: string, onAttack: AttackHandler) {
-        this.handlers[player].attacked = onAttack
-    }
-    defended(player: string, onDefend: DefendHandler) {
-        this.handlers[player].defended = onDefend
-    }
-    reversed(player: string, onReverse: ReverseHandler) {
-        this.handlers[player].reversed = onReverse
-    }
-    drawn(player: string, onDraw: DrawHandler) {
-        this.handlers[player].drawn = onDraw
-    }
-    conceded(player: string, onConcede: EndHandler) {
-        this.handlers[player].conceded = onConcede
-    }
-    finished(player: string, onFinished: EndHandler) {
-        this.handlers[player].finished = onFinished
-    }
-    granted(player: string, onGranted: GrantHandler) {
-        this.handlers[player].granted = onGranted
+    register(id: string, handlers: Handlers) {
+        this.handlers[id] = handlers
     }
 }
 
-export function mkClientEngine(id1: string, id2: string, trump: CardSuit): ClientEngine {
-    return new ClientEngine(id1, id2, trump)
+export function mkClientEngine(id1: string, id2: string, random: Random): ClientEngine {
+    return new ClientEngine(id1, id2, random)
 }

@@ -1,3 +1,5 @@
+import { isEqual } from "lodash"
+
 export const CARD_SUITS = {
     Spades: "spades",
     Hearts: "hearts",
@@ -109,4 +111,8 @@ export const boardId = "board"
 
 export function equalCards(card1?: ICard, card2?: ICard) {
     return card1?.suit === card2?.suit && card1?.value === card2?.value
+}
+
+export function includesCard(cards: ICard[], card: ICard): boolean {
+    return cards.find((c) => isEqual(c, card)) !== undefined
 }

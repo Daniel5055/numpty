@@ -10,8 +10,8 @@ export type MatchState =
 
 export interface GameState {
     attacking: boolean
-
     matchState: MatchState
+    trump?: ICard
 
     hand: ICard[]
     opHand: ICard[]

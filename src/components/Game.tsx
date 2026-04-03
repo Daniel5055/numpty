@@ -2,7 +2,7 @@ import { DragDropProvider } from '@dnd-kit/react'
 import { AnimatePresence } from 'framer-motion'
 import useGameState from '../hooks/useGameState'
 import { validDefence, boardUnique, boardReversible } from '../utils/board'
-import { CARD_SUITS, blankCard, type ICard, boardId } from '../utils/card'
+import { blankCard, type ICard, boardId } from '../utils/card'
 import Board from './Board'
 import Deck from './Deck'
 import Hand from './Hand'
@@ -15,17 +15,18 @@ interface GameProps {
 function Game({ mkEngine }: GameProps) {
   const id1 = "Daniel"
   const id2 = "CPU"
-  const trump = CARD_SUITS.Spades
 
   const {
+    matchState,
+    attacking,
+    trump,
+
     hand,
     opHand,
     board,
     deck,
     discard,
 
-    matchState,
-    attacking,
     attack,
     defend,
     reverse,
@@ -33,7 +34,7 @@ function Game({ mkEngine }: GameProps) {
     finish,
     grant,
     grantEnd,
-  } = useGameState(id1, id2, trump, mkEngine)
+  } = useGameState(id1, id2, mkEngine)
 
   const boardDroppable =
     (!attacking && boardReversible(board)) ||
@@ -42,7 +43,7 @@ function Game({ mkEngine }: GameProps) {
   return (
     <div id="container">
     <section id="left">
-      <Deck deck={deck ? [blankCard(-1), deck] : [blankCard(-1)]} />
+      <Deck deck={deck ? [blankCard(-1), deck] : [blankCard(-1)]} trump={trump} />
     </section>
     <section id="right">
       <Deck deck={discard} />
@@ -51,7 +52,7 @@ function Game({ mkEngine }: GameProps) {
       <AnimatePresence>
 
       <DragDropProvider onDragEnd={(event) => {
-        if (event.canceled) return
+        if (event.canceled || !trump?.suit) return
 
         const {target, source} = event.operation
         const card = source?.data as ICard
@@ -69,7 +70,7 @@ function Game({ mkEngine }: GameProps) {
               reverse(card)
             }
           } else if (target?.id !== boardId && targetCard) {
-            if (validDefence(targetCard, [card], trump).length === 1) {
+            if (validDefence(targetCard, [card], trump?.suit).length === 1) {
               defend(card, targetCard)
             }
           }

@@ -69,8 +69,13 @@
   background-color: whitesmoke;
 }
 
+.deck .trump {
+  transform: rotateZ(90deg) translate(72.5px, -100px);
+}
+
 .deck .card {
   position: absolute;
+  z-index: 1;
 }
 
 .hero {
@@ -119,7 +124,7 @@
   position: relative;
   text-align: left;
 
-  width: 800px;
+  width: 900px;
 }
 
 #left {

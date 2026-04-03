@@ -1,4 +1,5 @@
-import type { Board, CardSuit, ICard } from "../card";
+import type { Random } from "random-js";
+import type { Board, ICard } from "../card";
 
 export type AttackHandler = (card: ICard) => void 
 export type DefendHandler = (card: ICard, against: ICard) => void 
@@ -28,30 +29,25 @@ export const defaultHandlers: Handlers = {
 
 }
 
-export type MkEngine = (id1: string, id2: string, trump: CardSuit) => Engine
+export type MkEngine = (id1: string, id2: string, random: Random) => Engine
 
 export interface Engine {
-    trump: CardSuit
 
-    attacker: string
-
+    // Access game state
     hand: (player: string) => ICard[]
     board: () => Board
+    trumpCard: ICard
+    attacker: string
 
-    start: () => void
+    // Beginning the game, and returning the trump card
+    start: () => ICard
 
-    attack: (player: string, card: ICard) => void
-    defend: (player: string, card: ICard, against: ICard) => void
-    reverse: (player: string, card: ICard) => void
-    concede: (player: string) => void
-    finish: (player: string) => void
-    grant: (player: string, cards: ICard[]) => void
+    attack: (id: string, card: ICard) => void
+    defend: (id: string, card: ICard, against: ICard) => void
+    reverse: (id: string, card: ICard) => void
+    concede: (id: string) => void
+    finish: (id: string) => void
+    grant: (id: string, cards: ICard[]) => void
 
-    attacked: (player: string, onAttack: AttackHandler) => void
-    defended: (player: string, onDefend: DefendHandler) => void
-    reversed: (player: string, onReversed: ReverseHandler) => void
-    drawn: (player: string, onDraw: DrawHandler) => void
-    conceded: (player: string, onConcede: EndHandler) => void
-    finished: (player: string, onFinished: EndHandler) => void
-    granted: (player: string, onGrant: GrantHandler) => void
+    register: (id: string, handlers: Handlers) => void
 }

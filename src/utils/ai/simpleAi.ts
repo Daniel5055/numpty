@@ -1,37 +1,28 @@
 import { MersenneTwister19937, Random } from "random-js";
 import { type ICard } from "../card";
-import type { Engine } from "../engines/engine";
+import type { Engine, Handlers } from "../engines/engine";
 import { boardUnique, boardUnresolved, validDefence } from "../board";
 
-class SimpleAi {
-    public engine: Engine
-
-    private random = new Random(MersenneTwister19937.seedWithArray([0, 1]))
-
+class SimpleAi implements Handlers {
     private id: string
+    private random: Random
+    private engine: Engine
 
-    constructor(id: string, engine: Engine) {
-        this.engine = engine
-        engine.drawn(id, this.onDraw.bind(this))
-        engine.attacked(id, this.onAttack.bind(this))
-        engine.defended(id, this.onDefend.bind(this))
-        engine.reversed(id, this.onReverse.bind(this))
-        engine.conceded(id, this.onConceded.bind(this))
-        engine.finished(id, this.onFinished.bind(this))
-        engine.granted(id, this.onGranted.bind(this))
-
+    constructor(id: string, engine: Engine, random: Random = new Random(MersenneTwister19937.seed(1))) {
         this.id = id
+        this.engine = engine
+        this.random = random
     }
 
-    onDraw() {
+    drawn() {
         if (this.engine.attacker == this.id) {
             const card = this.choose(this.engine.hand(this.id))
             this.engine.attack(this.id, card)
         }
     }
 
-    onAttack(card: ICard): boolean {
-        const valid = validDefence(card, this.engine.hand(this.id), this.engine.trump)
+    attacked(card: ICard): boolean {
+        const valid = validDefence(card, this.engine.hand(this.id), this.engine.trumpCard.suit)
         if (valid.length === 0) {
             this.engine.concede(this.id)
             return false
@@ -41,7 +32,7 @@ class SimpleAi {
         }
     }
 
-    onDefend(): boolean {
+    defended(): boolean {
         const board = this.engine.board()
         const valid = this.engine.hand(this.id).filter((c) => boardUnique(board).includes(c.value))
 
@@ -56,14 +47,14 @@ class SimpleAi {
         }
     }
 
-    onReverse(card: ICard): boolean {
+    reversed(card: ICard): boolean {
         const valid = this.engine.hand(this.id).filter((c) => c.value === card.value)
         if (valid.length === 0) {
             // Handle the attacks until we can't
             const attacks = boardUnresolved(this.engine.board())
             let result = false
             for (let a = attacks[0], i = 0; i < attacks.length; a = attacks[++i]) {
-                result = this.onAttack(a)
+                result = this.attacked(a)
                 if (!result) {
                     break
                 }
@@ -75,7 +66,7 @@ class SimpleAi {
         }
     }
 
-    onConceded(): void {
+    conceded(): void {
         const valid = boardUnique(this.engine.board())
         const extra = this.engine.hand(this.id).filter((c) => valid.includes(c.value))
 
@@ -85,11 +76,11 @@ class SimpleAi {
         this.engine.attack(this.id, card)
     }
 
-    onFinished(): void {
+    finished(): void {
         // Do nothing
     }
 
-    onGranted(): void {
+    granted(): void {
         // Do nothing
     }
 
