@@ -214,6 +214,7 @@ function useGameState(
             setAttacking(false)
             setMatchState("PendingDefence")
           })
+          .wait()
       },
       drawn: (cards, opDrawn, first, trump) => {
         cmRef.current
@@ -222,12 +223,15 @@ function useGameState(
           .state("attacking", (attacking) =>
             setMatchState(attacking ? "PendingAttack" : "PendingDefence"),
           )
+          .wait()
       },
       conceded: () => {
-        cmRef.current.then(() => {
-          setMatchState("PendingGrant")
-          setAttackOptions(new Set())
-        })
+        cmRef.current
+          .then(() => {
+            setMatchState("PendingGrant")
+            setAttackOptions(new Set())
+          })
+          .wait()
       },
       finished: () => {
         cmRef.current
@@ -237,6 +241,7 @@ function useGameState(
             setAttackOptions(new Set())
             setAttacking(true)
           })
+          .wait()
       },
       granted: (cards) => {
         cmRef.current
@@ -256,6 +261,10 @@ function useGameState(
             })
             setBoard([])
           })
+          .wait()
+      },
+      gameOver: (win) => {
+        cmRef.current.then(() => setMatchState(win ? "Winner" : "Loser"))
       },
     }
   }, [])
@@ -281,12 +290,16 @@ function useGameState(
       return false
     }
 
-    setAttackOptions((ao) => new Set(ao).add(card.value))
-    setMatchState("Wait")
-    setBoard((b) => boardAdd(b, card))
-    setHand((h) => removeCard(h, card))
+    cmRef.current
+      .then(() => {
+        setAttackOptions((ao) => new Set(ao).add(card.value))
+        setMatchState("Wait")
+        setBoard((b) => boardAdd(b, card))
+        setHand((h) => removeCard(h, card))
 
-    engine.current.attack(id1, card)
+        engine.current.attack(id1, card)
+      })
+      .wait()
 
     return true
   }
@@ -308,15 +321,20 @@ function useGameState(
       return false
     }
 
-    engine.current.defend(id1, card, against)
-    setBoard((b) => boardAdd(b, card, against))
-    setHand((h) => removeCard(h, card))
+    cmRef.current
+      .then(() => {
+        setBoard((b) => boardAdd(b, card, against))
+        setHand((h) => removeCard(h, card))
 
-    if (boardUnresolved(board).length === 0) {
-      setMatchState("Wait")
-    } else {
-      setMatchState("PendingDefence")
-    }
+        if (boardUnresolved(board).length === 0) {
+          setMatchState("Wait")
+        } else {
+          setMatchState("PendingDefence")
+        }
+
+        engine.current.defend(id1, card, against)
+      })
+      .wait()
 
     return true
   }
@@ -340,12 +358,16 @@ function useGameState(
       return false
     }
 
-    engine.current.reverse(id1, card)
-    setBoard((b) => boardAdd(b, card))
-    setHand((h) => removeCard(h, card))
-    setMatchState("Wait")
-    setAttacking(true)
+    cmRef.current
+      .then(() => {
+        setBoard((b) => boardAdd(b, card))
+        setHand((h) => removeCard(h, card))
+        setMatchState("Wait")
+        setAttacking(true)
 
+        engine.current.reverse(id1, card)
+      })
+      .wait()
     return true
   }
 
@@ -355,10 +377,14 @@ function useGameState(
       return false
     }
 
-    setMatchState("Wait")
-    setAttackOptions(new Set())
+    cmRef.current
+      .then(() => {
+        setMatchState("Wait")
+        setAttackOptions(new Set())
 
-    engine.current.concede(id1)
+        engine.current.concede(id1)
+      })
+      .wait()
 
     return true
   }
@@ -369,9 +395,13 @@ function useGameState(
       return false
     }
 
-    setAttacking(false)
-    cmRef.current.queue((cm) => finishBoard(cm))
-    setMatchState("Wait")
+    cmRef.current
+      .queue((cm) => finishBoard(cm))
+      .then(() => {
+        setAttacking(false)
+        setMatchState("Wait")
+      })
+      .wait()
 
     engine.current.finish(id1)
 
@@ -379,33 +409,42 @@ function useGameState(
   }
 
   function grantEnd(card?: ICard): boolean {
-    setToGrant([])
     if (!card) {
       setMatchState("PendingAttack")
     } else {
-      cmRef.current.wait(400)
-      setAttackOptions((ao) => new Set(ao).add(card.value))
-      setMatchState("Wait")
-      setBoard((b) => boardAdd(b, card))
-      setHand((h) => removeCard(h, card))
+      cmRef.current
+        .then(() => {
+          setAttackOptions((ao) => new Set(ao).add(card.value))
+          setMatchState("Wait")
+          setBoard((b) => boardAdd(b, card))
+          setHand((h) => removeCard(h, card))
+        })
+        .wait(400)
     }
 
-    cmRef.current.queue((cm) =>
-      opTakeBoard(cm, card).then(() => {
-        engine.current.grant(id1, toGrant)
-        if (card) {
-          engine.current.attack(id1, card)
-        }
-      }),
-    )
+    cmRef.current
+      .queue((cm) =>
+        opTakeBoard(cm, card).then(() => {
+          engine.current.grant(id1, toGrant)
+          if (card) {
+            engine.current.attack(id1, card)
+          }
+        }),
+      )
+      .then(() => {
+        setToGrant([])
+      })
+      .wait()
 
     return true
   }
 
   function grant(card: ICard): boolean {
-    setBoard((b) => boardAdd(b, card))
-    setHand((h) => removeCard(h, card))
-    setToGrant((g) => g.concat(card))
+    cmRef.current.then(() => {
+      setBoard((b) => boardAdd(b, card))
+      setHand((h) => removeCard(h, card))
+      setToGrant((g) => g.concat(card))
+    })
 
     return true
   }

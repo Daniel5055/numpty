@@ -12,6 +12,7 @@ export type DrawHandler = (
 ) => void
 export type EndHandler = () => void
 export type GrantHandler = (cards: ICard[]) => void
+export type GameOverHandler = (win: boolean) => void
 
 export interface Handlers {
   attacked: AttackHandler
@@ -21,6 +22,7 @@ export interface Handlers {
   conceded: EndHandler
   finished: EndHandler
   granted: GrantHandler
+  gameOver: GameOverHandler
 }
 
 export const defaultHandlers: Handlers = {
@@ -31,6 +33,7 @@ export const defaultHandlers: Handlers = {
   conceded: () => null,
   finished: () => null,
   granted: () => null,
+  gameOver: () => null,
 }
 
 export type MkEngine = (id1: string, id2: string, random: Random) => Engine

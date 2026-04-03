@@ -6,7 +6,8 @@ export type MatchState =
   | "PendingDefence"
   | "PendingGrant"
   | "Wait"
-  | "GameOver"
+  | "Winner"
+  | "Loser"
 
 export interface GameState {
   attacking: boolean

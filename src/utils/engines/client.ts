@@ -18,11 +18,12 @@ export class ClientEngine implements Engine {
   // Flags
   private started = false
   private emptyDeck = false
+  private gameOver = false
 
   // board state
   private hands: Record<string, ICard[]> = {}
   #board: Board = []
-  private deck: ICard[] = allCards
+  private deck: ICard[] = allCards.slice(0)
 
   // Extra info
   private legalAttacks: Set<CardValue> = new Set()
@@ -43,6 +44,15 @@ export class ClientEngine implements Engine {
     return this.#trumpCard
   }
 
+  private hasWon(player: string): boolean {
+    if (this.hands[player].length === 0) {
+      this.gameOver = true
+      return true
+    } else {
+      return false
+    }
+  }
+
   private drawStep(player: string) {
     const draw1 = Math.max(6 - this.hands[player].length, 0)
     const draw2 = Math.max(6 - this.hands[this.other(player)].length, 0)
@@ -50,7 +60,7 @@ export class ClientEngine implements Engine {
     const draw = draw1 + draw2
 
     // Draw out cards, maybe including trump
-    const dc = this.deck.slice(-draw)
+    const dc = draw > 0 ? this.deck.slice(-draw) : []
     const drawnCards = draw > this.deck.length ? [this.trumpCard, ...dc] : dc
 
     // Update deck state
@@ -131,27 +141,35 @@ export class ClientEngine implements Engine {
   }
 
   attack(player: string, card: ICard) {
-    setTimeout(() => {
-      if (player !== this.attacker) {
-        throw new Error("Defender cannot attack")
-      }
+    if (this.gameOver) return
 
-      if (this.legalAttacks.size > 1 && !this.legalAttacks.has(card.value)) {
-        console.error(card, this.legalAttacks)
-        throw new Error("Not a valid attack")
-      }
+    //setTimeout(() => {
+    if (player !== this.attacker) {
+      throw new Error("Defender cannot attack")
+    }
 
-      this.#board = boardAdd(this.#board, card)
-      this.hands[player] = removeCard(this.hands[player], card)
+    if (this.legalAttacks.size > 1 && !this.legalAttacks.has(card.value)) {
+      console.error(card, this.legalAttacks)
+      throw new Error("Not a valid attack")
+    }
 
-      this.legalAttacks.add(card.value)
+    this.#board = boardAdd(this.#board, card)
+    this.hands[player] = removeCard(this.hands[player], card)
 
-      // Notify other player
-      this.handlers[this.other(player)].attacked(card)
-    }, 100)
+    this.legalAttacks.add(card.value)
+    this.handlers[this.other(player)].attacked(card)
+
+    if (this.hasWon(player)) {
+      this.handlers[player].gameOver(true)
+      this.handlers[this.other(player)].gameOver(false)
+    }
+    //}, 100)
   }
 
   defend(player: string, card: ICard, against: ICard) {
+    if (this.gameOver) return
+
+    // Cannot make this with settimeout as ai can call it repeatedly
     if (player === this.attacker) {
       throw new Error("Attacker cannot defend")
     }
@@ -160,39 +178,52 @@ export class ClientEngine implements Engine {
     this.hands[player] = removeCard(this.hands[player], card)
 
     this.legalAttacks.add(card.value)
-
-    // Notify other player
     this.handlers[this.other(player)].defended(card, against)
+
+    if (this.hasWon(player)) {
+      this.handlers[player].gameOver(true)
+      this.handlers[this.other(player)].gameOver(false)
+    }
   }
 
   reverse(player: string, card: ICard) {
-    setTimeout(() => {
-      if (player === this.attacker) {
-        throw new Error("Attacker cannot reverse")
-      }
+    if (this.gameOver) return
 
-      this.#board = boardAdd(this.#board, card)
-      this.hands[player] = removeCard(this.hands[player], card)
+    //setTimeout(() => {
+    if (player === this.attacker) {
+      throw new Error("Attacker cannot reverse")
+    }
 
-      // Reverse roles
-      this.attacker = player
+    this.#board = boardAdd(this.#board, card)
+    this.hands[player] = removeCard(this.hands[player], card)
 
-      // Notify other player
-      this.handlers[this.other(player)].reversed(card)
-    }, 100)
+    // Reverse roles
+    this.attacker = player
+    // Notify other player
+    this.handlers[this.other(player)].reversed(card)
+
+    if (this.hasWon(player)) {
+      this.handlers[player].gameOver(true)
+      this.handlers[this.other(player)].gameOver(false)
+    }
+    //}, 100)
   }
   concede(player: string) {
-    setTimeout(() => {
-      this.hands[player].push(
-        ...this.#board.flat().filter((c) => c !== undefined),
-      )
-      this.#board = []
-      this.legalAttacks.clear()
+    if (this.gameOver) return
 
-      this.handlers[this.other(player)].conceded()
-    }, 100)
+    //setTimeout(() => {
+    this.hands[player].push(
+      ...this.#board.flat().filter((c) => c !== undefined),
+    )
+    this.#board = []
+    this.legalAttacks.clear()
+
+    this.handlers[this.other(player)].conceded()
+    //}, 100)
   }
   finish(player: string) {
+    if (this.gameOver) return
+
     this.legalAttacks.clear()
     this.attacker = this.other(player)
 
@@ -200,21 +231,26 @@ export class ClientEngine implements Engine {
 
     this.#board = []
 
-    setTimeout(() => {
-      this.drawStep(player)
-    }, 100)
+    //setTimeout(() => {
+    this.drawStep(player)
+    //}, 100)
   }
   grant(player: string, cards: ICard[]) {
-    setTimeout(() => {
-      for (const card of cards) {
-        this.hands[player] = removeCard(this.hands[player], card)
-      }
+    if (this.gameOver) return
 
-      this.hands[this.other(player)] =
-        this.hands[this.other(player)].concat(cards)
+    //setTimeout(() => {
+    for (const card of cards) {
+      this.hands[player] = removeCard(this.hands[player], card)
+    }
 
-      this.handlers[this.other(player)].granted(cards)
-    }, 100)
+    this.hands[this.other(player)].push(...cards)
+    this.handlers[this.other(player)].granted(cards)
+
+    if (this.hasWon(player)) {
+      this.handlers[player].gameOver(true)
+      this.handlers[this.other(player)].gameOver(false)
+    }
+    //}, 100)
   }
 
   register(id: string, handlers: Handlers) {

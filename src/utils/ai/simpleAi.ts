@@ -98,6 +98,10 @@ class SimpleAi implements Handlers {
     // Do nothing
   }
 
+  gameOver(): void {
+    // Do nothing
+  }
+
   // Choose a card randomly from set
   private choose(cards: ICard[]): ICard {
     const i = this.random.integer(0, cards.length - 1)

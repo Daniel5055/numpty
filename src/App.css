@@ -17,6 +17,30 @@
   }
 }
 
+#endScreen {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background-color: gainsboro;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-items: center;
+  place-content: center;
+  flex-grow: 1;
+  border-radius: 50%;
+}
+
+#endScreen h3 {
+  font-size: 2rem;
+  color: black;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
 .card {
   /*aspect-ratio: calc(500/726);*/
   width: 100px;

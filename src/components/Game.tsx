@@ -10,9 +10,10 @@ import Hand from "./Hand"
 
 interface GameProps {
   mkEngine: MkEngine
+  playAgain: (winner: boolean) => void
 }
 
-function Game({ mkEngine }: GameProps) {
+function Game({ mkEngine, playAgain }: GameProps) {
   const id1 = "Daniel"
   const id2 = "CPU"
 
@@ -113,6 +114,16 @@ function Game({ mkEngine }: GameProps) {
           <button>Waiting</button>
         )}
       </section>
+      {["Winner", "Loser"].includes(matchState) && (
+        <div id="endScreen">
+          <h3>{matchState === "Winner" ? "You Win!" : "You Lost!"}</h3>
+
+          <button onClick={() => playAgain(matchState === "Winner")}>
+            Play again
+          </button>
+        </div>
+      )}
+      <div></div>
     </div>
   )
 }
