@@ -71,6 +71,8 @@ function useGameState(
     first: boolean,
     trump?: ICard,
   ) {
+    if (cards.length === 0 && opDrawn === 0) return cm
+
     const drewTrump = trump ? includesCard(cards, trump) : undefined
 
     let left = opDrawn - (drewTrump === false ? 1 : 0)
