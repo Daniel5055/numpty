@@ -1,7 +1,6 @@
 import { useState } from "react"
 import "./App.css"
 import Game from "./components/Game"
-import { mkClientEngine } from "./utils/engines/client"
 
 function App() {
   const [count, setCount] = useState(0)
@@ -10,7 +9,7 @@ function App() {
     setCount((c) => c + 1)
   }
 
-  return <Game mkEngine={mkClientEngine} playAgain={restart} key={count} />
+  return <Game engineType={"client"} playAgain={restart} key={count} />
 }
 
 export default App

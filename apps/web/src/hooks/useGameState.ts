@@ -1,8 +1,4 @@
-import _ from "lodash"
-import { MersenneTwister19937, Random } from "random-js"
-import { useEffect, useMemo, useRef, useState } from "react"
-import SimpleAi from "../utils/ai/simpleAi"
-import { boardAdd, boardUnique, boardUnresolved } from "../utils/board"
+import { boardAdd, boardUnique, boardUnresolved } from "@repo/core/board"
 import {
   type Board,
   blankCard,
@@ -11,9 +7,15 @@ import {
   includesCard,
   removeCard,
   removeLast,
-} from "../utils/card"
+} from "@repo/core/card"
+import type { Handlers } from "@repo/core/engine"
+import _ from "lodash"
+import { MersenneTwister19937, Random } from "random-js"
+import { useEffect, useMemo, useRef, useState } from "react"
+import SimpleAi from "../utils/ai/simpleAi"
 import ContextManager from "../utils/contextManager"
-import type { Engine, Handlers, MkEngine } from "../utils/engines/engine"
+import { ClientEngine } from "../utils/engines/ClientEngine"
+import type { WebEngine } from "../utils/engines/WebEngine"
 import { type GameState, type MatchState } from "../utils/game"
 
 interface St {
@@ -24,13 +26,13 @@ interface St {
 function useGameState(
   id1: string,
   id2: string,
-  buildEngine: MkEngine,
+  engineType: "client" | "remote",
 ): GameState {
   const nextId = useRef(0)
 
   // Context management handles animations and state changes in order
-  const engine = useRef<Engine>(
-    buildEngine(
+  const engine = useRef<WebEngine>(
+    new ClientEngine(
       id1,
       id2,
       new Random(MersenneTwister19937.seedWithArray([0, 1])),

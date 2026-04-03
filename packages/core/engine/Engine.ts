@@ -1,5 +1,4 @@
-import type { Random } from "random-js"
-import type { Board, ICard } from "../card"
+import type { ICard } from "../util/card"
 
 export type AttackHandler = (card: ICard) => void
 export type DefendHandler = (card: ICard, against: ICard) => void
@@ -36,15 +35,7 @@ export const defaultHandlers: Handlers = {
   gameOver: () => null,
 }
 
-export type MkEngine = (id1: string, id2: string, random: Random) => Engine
-
 export interface Engine {
-  // Access game state
-  hand: (player: string) => ICard[]
-  board: () => Board
-  trumpCard: ICard
-  attacker: string
-
   // Beginning the game, and returning the trump card
   start: () => ICard
 

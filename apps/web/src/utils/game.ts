@@ -1,4 +1,4 @@
-import type { Board, ICard } from "./card"
+import type { Board, ICard } from "@repo/core/card"
 
 export type MatchState =
   | "PendingAttack"
@@ -28,12 +28,4 @@ export interface GameState {
   finish: () => boolean
   grant: (card: ICard) => boolean
   grantEnd: (card?: ICard) => boolean
-}
-
-export type CardLocation = "Deck" | "Board" | "OpHand" | "MyHand"
-
-export interface CardMove {
-  from: CardLocation
-  cards: [ICard, ICard?][]
-  to: CardLocation
 }

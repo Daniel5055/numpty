@@ -1,5 +1,5 @@
 import { useDroppable } from "@dnd-kit/react"
-import { cardToId, type ICard, stackToId } from "../utils/card"
+import { cardToId, type ICard, stackToId } from "@repo/core/card"
 import Card from "./Card"
 
 interface StackProps {

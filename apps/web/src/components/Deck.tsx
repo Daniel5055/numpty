@@ -1,4 +1,4 @@
-import { cardToId, type ICard } from "../utils/card"
+import { cardToId, type ICard } from "@repo/core/card"
 import Card from "./Card"
 
 interface DrawPile {

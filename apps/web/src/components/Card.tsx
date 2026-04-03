@@ -1,7 +1,7 @@
 import { useDraggable } from "@dnd-kit/react"
+import { cardToFile, cardToId, type ICard } from "@repo/core/card"
 import { motion } from "framer-motion"
 import { useState } from "react"
-import { cardToFile, cardToId, type ICard } from "../utils/card"
 
 interface CardProps extends ICard {
   faceDown?: boolean

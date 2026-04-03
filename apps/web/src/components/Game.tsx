@@ -1,19 +1,18 @@
 import { DragDropProvider } from "@dnd-kit/react"
+import { boardReversible, boardUnique, validDefence } from "@repo/core/board"
+import { blankCard, boardId, type ICard } from "@repo/core/card"
 import { AnimatePresence } from "framer-motion"
 import useGameState from "../hooks/useGameState"
-import { boardReversible, boardUnique, validDefence } from "../utils/board"
-import { blankCard, boardId, type ICard } from "../utils/card"
-import type { MkEngine } from "../utils/engines/engine"
 import Board from "./Board"
 import Deck from "./Deck"
 import Hand from "./Hand"
 
 interface GameProps {
-  mkEngine: MkEngine
+  engineType: "remote" | "client"
   playAgain: (winner: boolean) => void
 }
 
-function Game({ mkEngine, playAgain }: GameProps) {
+function Game({ engineType, playAgain }: GameProps) {
   const id1 = "Daniel"
   const id2 = "CPU"
 
@@ -36,7 +35,7 @@ function Game({ mkEngine, playAgain }: GameProps) {
     finish,
     grant,
     grantEnd,
-  } = useGameState(id1, id2, mkEngine)
+  } = useGameState(id1, id2, engineType)
 
   const boardDroppable = (!attacking && boardReversible(board)) || attacking
 
