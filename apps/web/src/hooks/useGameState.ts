@@ -8,14 +8,13 @@ import {
   removeCard,
   removeLast,
 } from "@repo/core/card"
-import type { Handlers } from "@repo/core/engine"
+import type { Engine, Handlers } from "@repo/core/engine"
 import _ from "lodash"
 import { MersenneTwister19937, Random } from "random-js"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react"
 import SimpleAi from "../utils/ai/simpleAi"
 import ContextManager from "../utils/contextManager"
 import { ClientEngine } from "../utils/engines/ClientEngine"
-import type { WebEngine } from "../utils/engines/WebEngine"
 import { type GameState, type MatchState } from "../utils/game"
 
 interface St {
@@ -23,21 +22,8 @@ interface St {
   attacking: boolean
 }
 
-function useGameState(
-  id1: string,
-  id2: string,
-  engineType: "client" | "remote",
-): GameState {
+function useGameState(id1: string, engine: RefObject<Engine>): GameState {
   const nextId = useRef(0)
-
-  // Context management handles animations and state changes in order
-  const engine = useRef<WebEngine>(
-    new ClientEngine(
-      id1,
-      id2,
-      new Random(MersenneTwister19937.seedWithArray([0, 1])),
-    ),
-  )
 
   // State controlling hands, board, deck and discards, including animations
   const [hand, setHand] = useState<ICard[]>([])
@@ -52,7 +38,7 @@ function useGameState(
   const [trump, setTrump] = useState<ICard | undefined>()
 
   // Number of cards in deck excluding
-  const [deckCount, setDeckCount] = useState<number>(51)
+  const [deckCount, setDeckCount] = useState<number>(0)
 
   // Internal state
   const [attackOptions, setAttackOptions] = useState<Set<CardValue>>(new Set())
@@ -267,8 +253,15 @@ function useGameState(
           })
           .wait()
       },
-      gameOver: (win) => {
+      gameEnd: (win) => {
         cmRef.current.then(() => setMatchState(win ? "Winner" : "Loser"))
+      },
+      gameStart: (attacking, trump, deck) => {
+        cmRef.current.then(() => {
+          setTrump(trump)
+          setDeckCount(deck.length - 1)
+          setAttacking(attacking)
+        })
       },
     }
   }, [])
@@ -276,9 +269,8 @@ function useGameState(
   // Assign engine handlers
   useEffect(() => {
     engine.current.register(id1, userHandlers)
-    engine.current.register(id2, new SimpleAi(id2, engine.current))
-    setTrump(engine.current.start())
-  }, [id1, id2, userHandlers])
+    engine.current.start()
+  }, [id1, userHandlers])
 
   // Interaction
 

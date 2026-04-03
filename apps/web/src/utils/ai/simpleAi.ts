@@ -99,7 +99,11 @@ class SimpleAi implements Handlers {
     // Do nothing
   }
 
-  gameOver(): void {
+  gameStart(): void {
+    // Do nothing
+  }
+
+  gameEnd(): void {
     // Do nothing
   }
 

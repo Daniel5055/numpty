@@ -11,6 +11,11 @@ export type DrawHandler = (
 ) => void
 export type EndHandler = () => void
 export type GrantHandler = (cards: ICard[]) => void
+export type GameStartHandler = (
+  attacking: boolean,
+  trump: ICard,
+  deck: ICard[],
+) => void
 export type GameOverHandler = (win: boolean) => void
 
 export interface Handlers {
@@ -21,7 +26,8 @@ export interface Handlers {
   conceded: EndHandler
   finished: EndHandler
   granted: GrantHandler
-  gameOver: GameOverHandler
+  gameStart: GameStartHandler
+  gameEnd: GameOverHandler
 }
 
 export const defaultHandlers: Handlers = {
@@ -32,12 +38,13 @@ export const defaultHandlers: Handlers = {
   conceded: () => null,
   finished: () => null,
   granted: () => null,
-  gameOver: () => null,
+  gameStart: () => null,
+  gameEnd: () => null,
 }
 
 export interface Engine {
   // Beginning the game, and returning the trump card
-  start: () => ICard
+  start: () => void
 
   attack: (id: string, card: ICard) => void
   defend: (id: string, card: ICard, against: ICard) => void

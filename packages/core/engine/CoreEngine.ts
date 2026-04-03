@@ -124,6 +124,17 @@ export class CoreEngine implements Engine {
     if (!this.started) {
       this.started = true
       this._trumpCard = draw(this.deck)
+      // Inform of game start
+      this.handlers[this.player1].gameStart(
+        this._attacker === this.player1,
+        this.trumpCard,
+        this.deck.slice(0),
+      )
+      this.handlers[this.player2].gameStart(
+        this._attacker === this.player2,
+        this.trumpCard,
+        this.deck.slice(0),
+      )
 
       this.drawStep(this._attacker)
     }
@@ -151,8 +162,8 @@ export class CoreEngine implements Engine {
     this.handlers[this.other(player)].attacked(card)
 
     if (this.hasWon(player)) {
-      this.handlers[player].gameOver(true)
-      this.handlers[this.other(player)].gameOver(false)
+      this.handlers[player].gameEnd(true)
+      this.handlers[this.other(player)].gameEnd(false)
     }
     //}, 100)
   }
@@ -172,8 +183,8 @@ export class CoreEngine implements Engine {
     this.handlers[this.other(player)].defended(card, against)
 
     if (this.hasWon(player)) {
-      this.handlers[player].gameOver(true)
-      this.handlers[this.other(player)].gameOver(false)
+      this.handlers[player].gameEnd(true)
+      this.handlers[this.other(player)].gameEnd(false)
     }
   }
 
@@ -194,8 +205,8 @@ export class CoreEngine implements Engine {
     this.handlers[this.other(player)].reversed(card)
 
     if (this.hasWon(player)) {
-      this.handlers[player].gameOver(true)
-      this.handlers[this.other(player)].gameOver(false)
+      this.handlers[player].gameEnd(true)
+      this.handlers[this.other(player)].gameEnd(false)
     }
     //}, 100)
   }
@@ -238,8 +249,8 @@ export class CoreEngine implements Engine {
     this.handlers[this.other(player)].granted(cards)
 
     if (this.hasWon(player)) {
-      this.handlers[player].gameOver(true)
-      this.handlers[this.other(player)].gameOver(false)
+      this.handlers[player].gameEnd(true)
+      this.handlers[this.other(player)].gameEnd(false)
     }
     //}, 100)
   }

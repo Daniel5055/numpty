@@ -1,0 +1,20 @@
+{
+  "name": "server",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@socket.io/bun-engine": "^0.1.0",
+    "socket.io": "^4.8.3",
+    "@repo/core": "workspace:*"
+  },
+  "scripts": {
+    "dev": "bun run src/index"
+  }
+}
