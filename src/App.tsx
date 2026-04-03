@@ -1,4 +1,4 @@
-import './App.css'
+import "./App.css"
 import Game from "./components/Game"
 import { mkClientEngine } from "./utils/engines/client"
 
