@@ -1,7 +1,7 @@
 import { useDraggable } from "@dnd-kit/react"
 import { motion } from "framer-motion"
-import { cardToFile, cardToId, type ICard } from "../utils/card"
 import { useState } from "react"
+import { cardToFile, cardToId, type ICard } from "../utils/card"
 
 interface CardProps extends ICard {
   faceDown?: boolean
@@ -24,8 +24,12 @@ function Card({ suit, value, id, faceDown = false, lock = false }: CardProps) {
       layoutId={cardToId(suit, value, id)}
       layout
       id={cardToId(suit, value, id)}
-      onLayoutAnimationStart={() => {setAnimated(true)}}
-      onLayoutAnimationComplete={() => {setAnimated(false)}}
+      onLayoutAnimationStart={() => {
+        setAnimated(true)
+      }}
+      onLayoutAnimationComplete={() => {
+        setAnimated(false)
+      }}
     >
       {!faceDown ? (
         <img

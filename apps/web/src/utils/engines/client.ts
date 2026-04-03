@@ -62,7 +62,8 @@ export class ClientEngine implements Engine {
     // Draw out cards, maybe including trump
     const dc = draw > 0 ? this.deck.slice(-draw) : []
     const emptyDeck = draw > this.deck.length
-    const drawnCards = emptyDeck && !this.emptyDeck ? [this.trumpCard, ...dc] : dc
+    const drawnCards =
+      emptyDeck && !this.emptyDeck ? [this.trumpCard, ...dc] : dc
 
     // Update deck state
     this.deck.splice(-draw)
