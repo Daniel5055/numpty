@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "coof",
+      "name": "numpty",
       "dependencies": {
         "@dnd-kit/react": "^0.3.2",
         "@types/lodash-es": "^4.17.12",
