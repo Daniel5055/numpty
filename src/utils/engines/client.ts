@@ -15,8 +15,9 @@ export class ClientEngine implements Engine {
   public player2: string
   public attacker: string
 
-  // To make start function idempotent
+  // Flags
   private started = false
+  private emptyDeck = false
 
   // board state
   private hands: Record<string, ICard[]> = {}
@@ -46,23 +47,50 @@ export class ClientEngine implements Engine {
     const draw1 = Math.max(6 - this.hands[player].length, 0)
     const draw2 = Math.max(6 - this.hands[this.other(player)].length, 0)
 
+    const draw = draw1 + draw2
+
+    // Draw out cards, maybe including trump
+    const dc = this.deck.slice(-draw)
+    const drawnCards = draw > this.deck.length ? [this.trumpCard, ...dc] : dc
+
+    // Update deck state
+    const emptyDeck = draw > this.deck.length
+    this.deck.splice(-draw)
+
     const cards1 = []
-    for (let i = 0; i < draw1; i++) {
-      cards1.push(draw(this.deck))
-    }
-
     const cards2 = []
-    for (let i = 0; i < draw2; i++) {
-      cards2.push(draw(this.deck))
+
+    for (let i = drawnCards.length - 1; i >= 0; i--) {
+      // Alternate drawing or draw if the other can't anymore
+      if (
+        ((drawnCards.length - i - 1) % 2 === 0 && cards1.length < draw1) ||
+        cards2.length == draw2
+      ) {
+        cards1.push(drawnCards[i])
+      } else {
+        cards2.push(drawnCards[i])
+      }
     }
 
-    this.handlers[player].drawn(cards1, draw2, true)
-    this.handlers[this.other(player)].drawn(cards2, draw1, false)
+    // Trump card can only be drawn once
+    this.handlers[player].drawn(
+      cards1,
+      cards2.length,
+      true,
+      !this.emptyDeck && emptyDeck ? this.trumpCard : undefined,
+    )
+    this.handlers[this.other(player)].drawn(
+      cards2,
+      cards1.length,
+      false,
+      !this.emptyDeck && emptyDeck ? this.trumpCard : undefined,
+    )
 
     this.hands[player] = this.hands[player].concat(cards1)
     this.hands[this.other(player)] =
       this.hands[this.other(player)].concat(cards2)
 
+    this.emptyDeck = emptyDeck
     this.round++
   }
 
@@ -94,9 +122,9 @@ export class ClientEngine implements Engine {
   start(): ICard {
     if (!this.started) {
       this.started = true
-      this.drawStep(this.attacker)
-
       this.#trumpCard = draw(this.deck)
+
+      this.drawStep(this.attacker)
     }
 
     return this.trumpCard

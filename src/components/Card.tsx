@@ -20,7 +20,7 @@ function Card({ suit, value, id, faceDown = false, lock = false }: CardProps) {
       ref={ref}
       layoutId={cardToId(suit, value, id)}
       layout
-      style={{}}
+      id={cardToId(suit, value, id)}
     >
       {!faceDown ? (
         <img

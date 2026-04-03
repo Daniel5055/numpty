@@ -12,6 +12,7 @@ export interface GameState {
   attacking: boolean
   matchState: MatchState
   trump?: ICard
+  deckCount: number
 
   hand: ICard[]
   opHand: ICard[]

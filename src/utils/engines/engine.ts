@@ -8,6 +8,7 @@ export type DrawHandler = (
   cards: ICard[],
   opDrawn: number,
   first: boolean,
+  trump?: ICard,
 ) => void
 export type EndHandler = () => void
 export type GrantHandler = (cards: ICard[]) => void

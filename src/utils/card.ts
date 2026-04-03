@@ -78,7 +78,7 @@ export const allCards: ICard[] = Object.values(CARD_SUITS)
   .filter(({ suit, value }) => suit !== "blank" && value !== "blank")
 
 export function cardToId(suit: CardSuit, value: CardValue, id?: number) {
-  if (id) {
+  if (id !== undefined) {
     return `${value}_${suit}_${id}`
   }
   return `${value}_${suit}`

@@ -19,7 +19,11 @@ function Hand({ hand, opponent }: HandProps) {
           className="card-in-hand"
           key={`hand_${cardToId(c.suit, c.value, c.id)}`}
         >
-          <Card {...c} faceDown={opponent} />
+          <Card
+            {...c}
+            faceDown={opponent}
+            key={cardToId(c.suit, c.value, c.id)}
+          />
         </div>
       ))}
     </div>

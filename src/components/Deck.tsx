@@ -15,11 +15,8 @@ function Deck({ deck, trump }: DrawPile) {
         <Card {...c} faceDown key={cardToId(c.suit, c.value, c.id)} />
       ))}
       {trump && (
-        <div className="trump">
-          <Card
-            {...trump}
-            key={cardToId(trump.suit, trump.value, trump.id)}
-          />{" "}
+        <div className={`trump ${deck.length > 0 ? "" : "taken"}`}>
+          <Card key={cardToId(trump.suit, trump.value, trump.id)} {...trump} />
         </div>
       )}
     </div>

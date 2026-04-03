@@ -49,6 +49,9 @@ function useGameState(
   const [attacking, setAttacking] = useState<boolean>(true)
   const [trump, setTrump] = useState<ICard | undefined>()
 
+  // Number of cards in deck excluding
+  const [deckCount, setDeckCount] = useState<number>(51)
+
   // Internal state
   const [attackOptions, setAttackOptions] = useState<Set<CardValue>>(new Set())
   const [toGrant, setToGrant] = useState<ICard[]>([])
@@ -66,8 +69,12 @@ function useGameState(
     cards: ICard[],
     opDrawn: number,
     first: boolean,
+    trump?: ICard,
   ) {
-    let left = opDrawn
+    const drewTrump = trump ? includesCard(cards, trump) : undefined
+
+    let left = opDrawn - (drewTrump === false ? 1 : 0)
+    let toDraw = drewTrump ? removeLast(cards) : cards
 
     // Drawing a blank card
     const drawBlank = (_cm: ContextManager<St>) => {
@@ -77,6 +84,7 @@ function useGameState(
         .wait()
         .then(() => {
           setDeck(undefined)
+          setDeckCount((c) => c - 1)
           setOpHand((h) => h.concat(blank))
         })
         .wait()
@@ -89,12 +97,13 @@ function useGameState(
     }
 
     // Draw cards until and alternate with op if possible
-    for (let i = 0; i < cards.length; i++) {
-      cm.then(() => setDeck(cards[i]))
+    for (let i = 0; i < toDraw.length; i++) {
+      cm.then(() => setDeck(toDraw[i]))
         .wait()
         .then(() => {
           setDeck(undefined)
-          setHand((h) => h.concat(cards[i]))
+          setHand((h) => h.concat(toDraw[i]))
+          setDeckCount((c) => c - 1)
         })
         .wait()
 
@@ -107,6 +116,25 @@ function useGameState(
     while (left > 0) {
       left--
       cm.queue(drawBlank)
+    }
+
+    // Who draws the trump
+    if (trump) {
+      cm.then(() => {
+        // Update trump to trump that has been drawn
+        setTrump((t) => (t ? { ...t, id: 1 } : undefined))
+        if (drewTrump) {
+          setHand((h) => h.concat(trump))
+        } else {
+          setOpHand((h) => h.concat(trump))
+        }
+      })
+        .wait(drewTrump ? 0 : 400)
+        .then(() => {
+          if (!drewTrump) {
+            setOpHand((h) => removeLast(h).concat(blankCard(nextId.current++)))
+          }
+        })
     }
 
     return cm
@@ -187,9 +215,9 @@ function useGameState(
             setMatchState("PendingDefence")
           })
       },
-      drawn: (cards, opDrawn, first) => {
+      drawn: (cards, opDrawn, first, trump) => {
         cmRef.current
-          .queue((cm) => drawCards(cm, cards, opDrawn, first))
+          .queue((cm) => drawCards(cm, cards, opDrawn, first, trump))
           // Must use setter access state from nested callabck
           .state("attacking", (attacking) =>
             setMatchState(attacking ? "PendingAttack" : "PendingDefence"),
@@ -387,6 +415,7 @@ function useGameState(
     attacking,
     matchState,
     trump,
+    deckCount,
 
     // Card states
     hand,

@@ -20,6 +20,7 @@ function Game({ mkEngine }: GameProps) {
     matchState,
     attacking,
     trump,
+    deckCount,
 
     hand,
     opHand,
@@ -42,7 +43,9 @@ function Game({ mkEngine }: GameProps) {
     <div id="container">
       <section id="left">
         <Deck
-          deck={deck ? [blankCard(-1), deck] : [blankCard(-1)]}
+          deck={(deckCount > 0 ? [blankCard(-1)] : []).concat(
+            deck ? [deck] : [],
+          )}
           trump={trump}
         />
       </section>

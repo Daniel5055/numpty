@@ -66,11 +66,15 @@
 .deck {
   width: 100px;
   height: 145px;
-  background-color: whitesmoke;
+  background-color: #222;
 }
 
 .deck .trump {
   transform: rotateZ(90deg) translate(72.5px, -100px);
+}
+
+.deck .trump.taken {
+  opacity: 50%;
 }
 
 .deck .card {
