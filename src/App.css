@@ -57,7 +57,7 @@
   transform: translateY(0px);
   transition: 50ms ease transform;
 }
-.card-in-hand:hover {
+.card-in-hand:not(:has(.face-down,.animated)):hover {
   transform: translateY(-20px) !important;
 }
 

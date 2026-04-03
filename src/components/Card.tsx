@@ -1,6 +1,7 @@
 import { useDraggable } from "@dnd-kit/react"
 import { motion } from "framer-motion"
 import { cardToFile, cardToId, type ICard } from "../utils/card"
+import { useState } from "react"
 
 interface CardProps extends ICard {
   faceDown?: boolean
@@ -14,13 +15,17 @@ function Card({ suit, value, id, faceDown = false, lock = false }: CardProps) {
     disabled: faceDown || lock,
   })
 
+  const [animated, setAnimated] = useState(false)
+
   return (
     <motion.div
-      className="card"
+      className={`card ${animated ? "animated" : ""} ${faceDown ? "face-down" : ""}`}
       ref={ref}
       layoutId={cardToId(suit, value, id)}
       layout
       id={cardToId(suit, value, id)}
+      onLayoutAnimationStart={() => {setAnimated(true)}}
+      onLayoutAnimationComplete={() => {setAnimated(false)}}
     >
       {!faceDown ? (
         <img
