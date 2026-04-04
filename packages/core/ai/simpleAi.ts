@@ -2,16 +2,16 @@ import { boardUnique, boardUnresolved, validDefence } from "@repo/core/board"
 import { type ICard } from "@repo/core/card"
 import type { Handlers } from "@repo/core/engine"
 import { MersenneTwister19937, Random } from "random-js"
-import type { WebEngine } from "../engines/WebEngine"
+import type { IStateEngine } from "../engine/StateEngine"
 
 class SimpleAi implements Handlers {
   private id: string
   private random: Random
-  private engine: WebEngine
+  private engine: IStateEngine
 
   constructor(
     id: string,
-    engine: WebEngine,
+    engine: IStateEngine,
     random: Random = new Random(MersenneTwister19937.seed(1)),
   ) {
     this.id = id
@@ -20,7 +20,7 @@ class SimpleAi implements Handlers {
   }
 
   drawn() {
-    if (this.engine.attacker() == this.id) {
+    if (this.engine.attacking(this.id)) {
       const card = this.choose(this.engine.hand(this.id))
       this.engine.attack(this.id, card)
     }

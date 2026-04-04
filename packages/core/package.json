@@ -6,7 +6,8 @@
     "./board": "./util/board.ts",
     "./card": "./util/card.ts",
     "./deck": "./util/deck.ts",
-    "./protocol": "./util/protocol.ts"
+    "./protocol": "./util/protocol.ts",
+    "./ai": "./ai/index.ts"
   },
   "license": "MIT",
   "scripts": {},
@@ -17,6 +18,7 @@
   },
   "dependencies": {
     "lodash-es": "^4.18.1",
-    "random-js": "^2.1.0"
+    "random-js": "^2.1.0",
+    "socket.io-client": "^4.8.3"
   }
 }

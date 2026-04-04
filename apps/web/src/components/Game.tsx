@@ -2,7 +2,7 @@ import { DragDropProvider } from "@dnd-kit/react"
 import { boardReversible, boardUnique, validDefence } from "@repo/core/board"
 import { blankCard, boardId, type ICard } from "@repo/core/card"
 import { AnimatePresence } from "framer-motion"
-import useRemoteGameState from "../hooks/useRemoteGameState"
+import useClientAIGameState from "../hooks/useClientAIGameState"
 import Board from "./Board"
 import Deck from "./Deck"
 import Hand from "./Hand"
@@ -34,7 +34,7 @@ function Game({ engineType, playAgain }: GameProps) {
     finish,
     grant,
     grantEnd,
-  } = useRemoteGameState(id1)
+  } = useClientAIGameState(id1)
 
   const boardDroppable = (!attacking && boardReversible(board)) || attacking
 
@@ -61,7 +61,10 @@ function Game({ engineType, playAgain }: GameProps) {
               const card = source?.data as ICard
               const targetCard = target?.data as ICard | undefined
 
-              if (matchState === "PendingAttack") {
+              if (
+                matchState === "PendingAttack" ||
+                matchState === "PendingExtraAttack"
+              ) {
                 if (target?.id === boardId) {
                   attack(card)
                 }

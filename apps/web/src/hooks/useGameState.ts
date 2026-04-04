@@ -193,6 +193,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
               setMatchState("PendingAttack")
             }
           })
+          .wait()
       },
       reversed: (card) => {
         cmRef.current
@@ -266,7 +267,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
   // Assign engine handlers
   useEffect(() => {
     engine.current.register(id1, userHandlers)
-    engine.current.start()
+    engine.current.ready(id1)
 
     return () => engine.current.deregister(id1)
   }, [id1, userHandlers])
@@ -290,7 +291,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
         setAttackOptions((ao) => new Set(ao).add(card.value))
         setBoard((b) => boardAdd(b, card))
         setHand((h) => removeCard(h, card))
-
+        setMatchState("PendingExtraAttack")
         engine.current.attack(id1, card)
       })
       .wait()
@@ -356,7 +357,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
       .then(() => {
         setBoard((b) => boardAdd(b, card))
         setHand((h) => removeCard(h, card))
-        setMatchState("Wait")
+        setMatchState("PendingExtraAttack")
         setAttacking(true)
 
         engine.current.reverse(id1, card)

@@ -15,7 +15,13 @@ const eng = new Engine({
 
 io.bind(eng)
 
+//console.log('hello world')
+
 new Game(io)
+
+io.on("connection_error", (err) => {
+  console.log(err)
+})
 
 Bun.serve({
   port: 3000,

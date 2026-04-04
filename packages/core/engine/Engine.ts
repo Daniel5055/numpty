@@ -43,8 +43,7 @@ export const defaultHandlers: Handlers = {
 }
 
 export interface Engine {
-  // Beginning the game, and returning the trump card
-  start: () => void
+  ready: (id: string) => void
 
   attack: (id: string, card: ICard) => void
   defend: (id: string, card: ICard, against: ICard) => void

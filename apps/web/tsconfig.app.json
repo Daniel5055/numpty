@@ -4,5 +4,10 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "types": ["vite/client"]
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "../../packages/core/engine/ClientEngine.ts",
+    "../../packages/core/engine/RemoteEngine.ts",
+    "../../packages/core/engine/StateEngine.ts"
+  ]
 }

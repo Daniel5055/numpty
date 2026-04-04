@@ -78,7 +78,8 @@ export class Game {
     )
     this.engine.register(id1, this.handlers[id1] ?? defaultHandlers)
     this.engine.register(id2, this.handlers[id2] ?? defaultHandlers)
-    this.engine.start()
+    this.engine.ready(id1)
+    this.engine.ready(id2)
     console.log("Game start")
   }
 }

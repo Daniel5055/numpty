@@ -1,17 +1,16 @@
 import type { ICard } from "@repo/core/card"
 import type { Engine, Handlers } from "@repo/core/engine"
 import { RECV_PROTOCOL, SEND_PROTOCOL } from "@repo/core/protocol"
-import { Socket } from "socket.io-client"
 
 class RemoteEngine implements Engine {
-  socket: Socket
+  socket: any
 
-  constructor(socket: Socket) {
+  constructor(socket: any) {
     this.socket = socket
   }
 
-  start() {
-    this.socket.connect()
+  ready(_: string) {
+    //
   }
 
   attack(_: string, card: ICard): void {
