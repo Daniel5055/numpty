@@ -61,7 +61,7 @@ export class Game {
         this.engine?.finish(socket.id)
       })
       socket.on(SEND_PROTOCOL.Grant, (card) => {
-        this.engine?.attack(socket.id, card)
+        this.engine?.grant(socket.id, card)
       })
 
       if (this.id1 !== null && this.id2 !== null) {

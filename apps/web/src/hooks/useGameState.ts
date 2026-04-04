@@ -254,7 +254,6 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
         cmRef.current.then(() => setMatchState(win ? "Winner" : "Loser"))
       },
       gameStart: (attacking, trump, deck) => {
-        console.log("message")
         cmRef.current.then(() => {
           setTrump(trump)
           setDeckCount(deck.length - 1)
@@ -289,7 +288,6 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
     cmRef.current
       .then(() => {
         setAttackOptions((ao) => new Set(ao).add(card.value))
-        setMatchState("Wait")
         setBoard((b) => boardAdd(b, card))
         setHand((h) => removeCard(h, card))
 
@@ -321,14 +319,14 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
       .then(() => {
         setBoard((b) => boardAdd(b, card, against))
         setHand((h) => removeCard(h, card))
-
+        engine.current.defend(id1, card, against)
+      })
+      .state("board", (board) => {
         if (boardUnresolved(board).length === 0) {
           setMatchState("Wait")
         } else {
           setMatchState("PendingDefence")
         }
-
-        engine.current.defend(id1, card, against)
       })
       .wait()
 
