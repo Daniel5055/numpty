@@ -1,28 +1,7 @@
 import type { ICard } from "@repo/core/card"
 import type { Engine, Handlers } from "@repo/core/engine"
+import { RECV_PROTOCOL, SEND_PROTOCOL } from "@repo/core/protocol"
 import { Socket } from "socket.io-client"
-
-const SEND_PROTOCOL = {
-  Attack: "ATTACK",
-  Defend: "DEFEND",
-  Reverse: "REVERSE",
-  Concede: "CONCEDE",
-  Finish: "FINISH",
-  Grant: "GRANT",
-}
-
-const RECV_PROTOCOL = {
-  Attacked: "ATTACKED",
-  Defended: "DEFENDED",
-  Reversed: "REVERSED",
-  Conceded: "CONCEDED",
-  Finished: "FINISHED",
-  Granted: "GRANTED",
-  Drawn: "DRAWN",
-
-  Started: "GAME_START",
-  Endeded: "GAME_END",
-}
 
 class RemoteEngine implements Engine {
   socket: Socket
@@ -36,13 +15,13 @@ class RemoteEngine implements Engine {
   }
 
   attack(_: string, card: ICard): void {
-    this.socket.emit(SEND_PROTOCOL.Attack, { card })
+    this.socket.emit(SEND_PROTOCOL.Attack, card)
   }
   defend(_: string, card: ICard, against: ICard) {
-    this.socket.emit(SEND_PROTOCOL.Defend, { card, against })
+    this.socket.emit(SEND_PROTOCOL.Defend, card, against)
   }
   reverse(_: string, card: ICard) {
-    this.socket.emit(SEND_PROTOCOL.Reverse, { card })
+    this.socket.emit(SEND_PROTOCOL.Reverse, card)
   }
   concede(_: string) {
     this.socket.emit(SEND_PROTOCOL.Concede)
@@ -51,7 +30,7 @@ class RemoteEngine implements Engine {
     this.socket.emit(SEND_PROTOCOL.Finish)
   }
   grant(_: string, cards: ICard[]) {
-    this.socket.emit(SEND_PROTOCOL.Grant, { cards })
+    this.socket.emit(SEND_PROTOCOL.Grant, cards)
   }
   register(_: string, handlers: Handlers) {
     this.socket.on(RECV_PROTOCOL.Attacked, handlers.attacked)
@@ -63,6 +42,18 @@ class RemoteEngine implements Engine {
     this.socket.on(RECV_PROTOCOL.Drawn, handlers.drawn)
     this.socket.on(RECV_PROTOCOL.Started, handlers.gameStart)
     this.socket.on(RECV_PROTOCOL.Endeded, handlers.gameEnd)
+  }
+
+  deregister(_: string) {
+    this.socket.off(RECV_PROTOCOL.Attacked)
+    this.socket.off(RECV_PROTOCOL.Defended)
+    this.socket.off(RECV_PROTOCOL.Reversed)
+    this.socket.off(RECV_PROTOCOL.Conceded)
+    this.socket.off(RECV_PROTOCOL.Finished)
+    this.socket.off(RECV_PROTOCOL.Granted)
+    this.socket.off(RECV_PROTOCOL.Drawn)
+    this.socket.off(RECV_PROTOCOL.Started)
+    this.socket.off(RECV_PROTOCOL.Endeded)
   }
 }
 

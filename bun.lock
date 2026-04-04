@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "with-vite",
+      "dependencies": {
+        "random-js": "^2.1.0",
+      },
       "devDependencies": {
         "@biomejs/biome": "2.4.10",
         "turbo": "^2.9.3",
@@ -12,6 +15,7 @@
     "apps/server": {
       "name": "server",
       "dependencies": {
+        "@repo/core": "workspace:*",
         "@socket.io/bun-engine": "^0.1.0",
         "socket.io": "^4.8.3",
       },

@@ -258,6 +258,10 @@ export class CoreEngine implements Engine {
   register(id: string, handlers: Handlers) {
     this.handlers[id] = handlers
   }
+
+  deregister(id: string) {
+    this.handlers[id] = defaultHandlers
+  }
 }
 
 export function mkClientEngine(

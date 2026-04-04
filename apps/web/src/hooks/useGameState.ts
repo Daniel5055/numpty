@@ -10,11 +10,8 @@ import {
 } from "@repo/core/card"
 import type { Engine, Handlers } from "@repo/core/engine"
 import _ from "lodash"
-import { MersenneTwister19937, Random } from "random-js"
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react"
-import SimpleAi from "../utils/ai/simpleAi"
 import ContextManager from "../utils/contextManager"
-import { ClientEngine } from "../utils/engines/ClientEngine"
 import { type GameState, type MatchState } from "../utils/game"
 
 interface St {
@@ -257,6 +254,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
         cmRef.current.then(() => setMatchState(win ? "Winner" : "Loser"))
       },
       gameStart: (attacking, trump, deck) => {
+        console.log("message")
         cmRef.current.then(() => {
           setTrump(trump)
           setDeckCount(deck.length - 1)
@@ -270,6 +268,8 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
   useEffect(() => {
     engine.current.register(id1, userHandlers)
     engine.current.start()
+
+    return () => engine.current.deregister(id1)
   }, [id1, userHandlers])
 
   // Interaction

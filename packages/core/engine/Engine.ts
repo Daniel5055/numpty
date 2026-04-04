@@ -54,4 +54,5 @@ export interface Engine {
   grant: (id: string, cards: ICard[]) => void
 
   register: (id: string, handlers: Handlers) => void
+  deregister: (id: string) => void
 }

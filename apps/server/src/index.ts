@@ -1,6 +1,7 @@
 import { Server as Engine } from "@socket.io/bun-engine"
 import Bun from "bun"
 import { Server } from "socket.io"
+import { Game } from "./game"
 
 const io = new Server()
 
@@ -16,14 +17,7 @@ io.bind(eng)
 
 //console.log('hello world')
 
-io.on("connection", (socket) => {
-  console.log(socket.id, "connected")
-
-  socket.on("disconnect", () => {
-    console.log(socket.id, "disconnected")
-  })
-  socket.emit("hello")
-})
+new Game(io)
 
 io.on("connection_error", (err) => {
   console.log(err)

@@ -5,7 +5,8 @@
     "./engine": "./engine/index.ts",
     "./board": "./util/board.ts",
     "./card": "./util/card.ts",
-    "./deck": "./util/deck.ts"
+    "./deck": "./util/deck.ts",
+    "./protocol": "./util/protocol.ts"
   },
   "license": "MIT",
   "scripts": {},
