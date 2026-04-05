@@ -150,7 +150,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
           const toAdd = cards.filter((c) => !includesCard(h, c))
           return h.concat(toAdd)
         })
-        setBoard(except ? boardAdd([], except) : [])
+        return except ? boardAdd([], except) : []
       })
       .wait(400)
       .then(() => {
@@ -162,6 +162,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
   function finishBoard(cm: ContextManager<St>) {
     return cm
       .state("board", (board) => {
+        console.log("board state", board)
         const cards = _.reverse(_.zip(...board))
           .flat()
           .filter((c) => c !== undefined) as ICard[]
@@ -169,7 +170,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
           const toAdd = cards.filter((c) => !includesCard(d, c))
           return d.concat(toAdd)
         })
-        setBoard([])
+        return []
       })
       .wait()
   }
@@ -200,6 +201,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
             } else {
               setMatchState("PendingAttack")
             }
+            return board
           })
           .wait()
       },
@@ -221,9 +223,10 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
         cmRef.current
           .queue((cm) => drawCards(cm, cards, opDrawn, first, trump))
           // Must use setter access state from nested callabck
-          .state("attacking", (attacking) =>
-            setMatchState(attacking ? "PendingAttack" : "PendingDefence"),
-          )
+          .state("attacking", (attacking) => {
+            setMatchState(attacking ? "PendingAttack" : "PendingDefence")
+            return attacking
+          })
           .wait()
       },
       conceded: () => {
@@ -265,7 +268,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
               const toAdd = bCards.filter((c) => !includesCard(h, c))
               return h.concat(toAdd)
             })
-            setBoard([])
+            return []
           })
           .wait()
       },
@@ -359,6 +362,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
         } else {
           setMatchState("PendingDefence")
         }
+        return board
       })
       .wait()
 

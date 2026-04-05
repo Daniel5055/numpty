@@ -38,17 +38,17 @@ class ContextManager<T> {
    */
   state<K extends keyof T>(
     key: K,
-    callback: (v: T[K]) => void,
+    callback: (v: T[K]) => T[K],
   ): ContextManager<T> {
     this.ctx = this.ctx.then(
       () =>
         new Promise((resolve) => {
           this.#state[key]((val) => {
-            callback(val)
+            const res = callback(val)
 
             resolve()
 
-            return val
+            return res
           })
         }),
     )
