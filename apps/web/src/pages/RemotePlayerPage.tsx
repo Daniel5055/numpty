@@ -6,7 +6,7 @@ function RemotePlayerPage() {
   const [count, setCount] = useState(0)
 
   return (
-    <RemotePlayer url={"http://localhost:3000"}>
+    <RemotePlayer url={"https://2365-51-175-70-250.ngrok-free.app"}>
       <Game playAgain={() => setCount((c) => c + 1)} key={count} />
     </RemotePlayer>
   )
