@@ -71,11 +71,7 @@ export class Game {
   }
 
   start(id1: string, id2: string) {
-    this.engine = new CoreEngine(
-      id1,
-      id2,
-      new Random(MersenneTwister19937.seed(0)),
-    )
+    this.engine = new CoreEngine(id1, id2, new Random())
     this.engine.register(id1, this.handlers[id1] ?? defaultHandlers)
     this.engine.register(id2, this.handlers[id2] ?? defaultHandlers)
     this.engine.ready(id1)

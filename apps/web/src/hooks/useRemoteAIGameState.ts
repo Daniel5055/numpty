@@ -1,14 +1,12 @@
 import { RemoteAI } from "@repo/core/ai"
 import { CoreEngine } from "@repo/core/engine"
-import { MersenneTwister19937, Random } from "random-js"
+import { Random } from "random-js"
 import { useEffect, useRef } from "react"
 import { socket } from "../utils/socket"
 import useGameState from "./useGameState"
 
 function useRemoteAIGameState(id: string, url: string) {
-  const engine = useRef(
-    new CoreEngine(id, "CPU", new Random(MersenneTwister19937.seed(0))),
-  )
+  const engine = useRef(new CoreEngine(id, "CPU", new Random()))
 
   useEffect(() => {
     //@ts-ignore

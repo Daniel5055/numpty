@@ -31,11 +31,7 @@ export class Game {
         return
       }
       this.engine = new RemoteStateEngine(socket)
-      this.ai = new SimpleAi(
-        "CPU",
-        this.engine,
-        new Random(MersenneTwister19937.seed(0)),
-      )
+      this.ai = new SimpleAi("CPU", this.engine, new Random())
       this.engine.register("CPU", this.ai)
     })
   }

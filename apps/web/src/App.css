@@ -139,7 +139,6 @@
   height: 145px;
   position: relative;
   z-index: 5;
-  
 }
 
 .card img {
@@ -177,7 +176,7 @@
   border-bottom-right-radius: 10px;
   border: 5px solid var(--board);
   position: relative;
-  z-index: 0
+  z-index: 0;
 }
 
 .board .caption {
@@ -194,7 +193,6 @@
   left: -5px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
-
 }
 
 .board.attack {
@@ -259,7 +257,6 @@
 
 .status button:disabled {
   opacity: 0.4;
-  border: 1.5px solid var(grey);
 }
 
 .status button:hover:not(:disabled) {

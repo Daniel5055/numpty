@@ -3,11 +3,11 @@ import {
   type Board,
   blankCard,
   type CardValue,
+  cardToString,
   type ICard,
   includesCard,
   removeCard,
   removeLast,
-  cardToString,
 } from "@repo/core/card"
 import type { Engine, Handlers } from "@repo/core/engine"
 import _ from "lodash"
@@ -180,12 +180,18 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
         cmRef.current
           .queue((cm) => playCard(cm, card))
           .then(() => setMatchState("PendingDefence"))
-          .then(() => setCaption(`Opponent attacked with ${cardToString(card)}`))
+          .then(() =>
+            setCaption(`Opponent attacked with ${cardToString(card)}`),
+          )
       },
       defended: (card, against) => {
         cmRef.current
           .queue((cm) => playCard(cm, card, against))
-          .then(() => setCaption(`Opponent defended ${cardToString(against)} with ${cardToString(card)}`))
+          .then(() =>
+            setCaption(
+              `Opponent defended ${cardToString(against)} with ${cardToString(card)}`,
+            ),
+          )
           .state("board", (board) => {
             // Hacky way to access state within nested callback
             setAttackOptions((ao) => new Set(ao).add(card.value))
@@ -200,7 +206,11 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
       reversed: (card) => {
         cmRef.current
           .queue((cm) => playCard(cm, card))
-          .then(() => setCaption(`Opponent reversed with ${cardToString(card)}. Their attack`))
+          .then(() =>
+            setCaption(
+              `Opponent reversed with ${cardToString(card)}. Their attack`,
+            ),
+          )
           .then(() => {
             setAttacking(false)
             setMatchState("PendingDefence")
@@ -245,7 +255,9 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
             }
             setBoard((b) => cards.reduce((b1, c) => boardAdd(b1, c), b))
           })
-          .then(() => setCaption(`Opponent gives ${cards.length}. Their attack`))
+          .then(() =>
+            setCaption(`Opponent gives ${cards.length}. Their attack`),
+          )
           .wait(cards.length === 0 ? 0 : 400)
           .state("board", (board) => {
             const bCards = board.flat().filter((c) => c !== undefined)
@@ -259,17 +271,19 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
       },
       gameEnd: (win) => {
         cmRef.current
-        .then(() => setMatchState(win ? "Winner" : "Loser"))
-        .then(() => setCaption(`Game over. You ${win ? "win" : "lose"}!`))
+          .then(() => setMatchState(win ? "Winner" : "Loser"))
+          .then(() => setCaption(`Game over. You ${win ? "win" : "lose"}!`))
       },
       gameStart: (attacking, trump, deck) => {
         cmRef.current
-        .then(() => {
-          setTrump(trump)
-          setDeckCount(deck.length - 1)
-          setAttacking(attacking)
-        })
-        .then(() => setCaption(`Game started. ${attacking ? "Your" : "Their"} attack`))
+          .then(() => {
+            setTrump(trump)
+            setDeckCount(deck.length - 1)
+            setAttacking(attacking)
+          })
+          .then(() =>
+            setCaption(`Game started. ${attacking ? "Your" : "Their"} attack`),
+          )
       },
     }
   }, [])
@@ -298,7 +312,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
 
     cmRef.current
       .then(() => {
-        console.log('happens2')
+        console.log("happens2")
         setAttackOptions((ao) => new Set(ao).add(card.value))
         setBoard((b) => boardAdd(b, card))
         setHand((h) => removeCard(h, card))
@@ -334,7 +348,11 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
         setHand((h) => removeCard(h, card))
         engine.current.defend(id1, card, against)
       })
-      .then(() => setCaption(`You defended ${cardToString(against)} with ${cardToString(card)}`))
+      .then(() =>
+        setCaption(
+          `You defended ${cardToString(against)} with ${cardToString(card)}`,
+        ),
+      )
       .state("board", (board) => {
         if (boardUnresolved(board).length === 0) {
           setMatchState("Wait")
@@ -375,7 +393,9 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
 
         engine.current.reverse(id1, card)
       })
-      .then(() => setCaption(`You reversed with ${cardToString(card)}. Your attack`))
+      .then(() =>
+        setCaption(`You reversed with ${cardToString(card)}. Your attack`),
+      )
       .wait()
     return true
   }
@@ -432,7 +452,9 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
           setBoard((b) => boardAdd(b, card))
           setHand((h) => removeCard(h, card))
         })
-        .then(() => setCaption(`Cards given. Your attacked with ${cardToString(card)}`))
+        .then(() =>
+          setCaption(`Cards given. Your attacked with ${cardToString(card)}`),
+        )
         .wait(400)
     }
 
@@ -455,12 +477,12 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
 
   function grant(card: ICard): boolean {
     cmRef.current
-    .then(() => {
-      setBoard((b) => boardAdd(b, card))
-      setHand((h) => removeCard(h, card))
-      setToGrant((g) => g.concat(card))
-    })
-    .then(() => setCaption(`You gave ${cardToString(card)}`))
+      .then(() => {
+        setBoard((b) => boardAdd(b, card))
+        setHand((h) => removeCard(h, card))
+        setToGrant((g) => g.concat(card))
+      })
+      .then(() => setCaption(`You gave ${cardToString(card)}`))
 
     return true
   }

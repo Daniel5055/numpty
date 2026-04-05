@@ -1,7 +1,7 @@
 import { boardUnique, boardUnresolved, validDefence } from "@repo/core/board"
 import { type ICard } from "@repo/core/card"
 import type { Handlers } from "@repo/core/engine"
-import { MersenneTwister19937, Random } from "random-js"
+import { Random } from "random-js"
 import type { IStateEngine } from "../engine/StateEngine"
 
 class SimpleAi implements Handlers {
@@ -9,11 +9,7 @@ class SimpleAi implements Handlers {
   private random: Random
   private engine: IStateEngine
 
-  constructor(
-    id: string,
-    engine: IStateEngine,
-    random: Random = new Random(MersenneTwister19937.seed(1)),
-  ) {
+  constructor(id: string, engine: IStateEngine, random: Random) {
     this.id = id
     this.engine = engine
     this.random = random
