@@ -122,6 +122,7 @@ class RemoteStateEngine extends RemoteEngine implements IStateEngine {
       gameStart: (attacking, trump, deck) => {
         this._attacking = attacking
         this._trumpCard = trump
+        console.log("game started")
 
         return handlers.gameStart(attacking, trump, deck)
       },

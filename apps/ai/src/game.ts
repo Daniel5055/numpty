@@ -26,6 +26,7 @@ export class Game {
       if (this.id === null) {
         this.id = socket.id
       } else {
+        console.log("disconneted")
         socket.disconnect()
         return
       }

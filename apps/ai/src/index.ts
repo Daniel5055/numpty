@@ -15,7 +15,7 @@ const eng = new Engine({
 
 io.bind(eng)
 
-//console.log('hello world')
+console.log("hello world")
 
 new Game(io)
 

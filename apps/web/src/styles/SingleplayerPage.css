@@ -17,12 +17,13 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 600px;
 }
 
 .opponent-card {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1rem;
   padding: 2rem;
   border: 1px solid var(--border);
@@ -33,8 +34,7 @@
 
 .opponent-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 4px 12px rgba(170, 59, 255, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15);
 }
 
 .opponent-card h3 {
@@ -51,19 +51,20 @@
 .opponent-input-group input {
   flex: 1;
   padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
   background: var(--bg);
   color: var(--text);
   font-family: var(--mono);
   font-size: 0.9rem;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .opponent-input-group input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
+  background: var(--bg);
 }
 
 .opponent-link {
@@ -74,17 +75,18 @@
   background: var(--accent-alt);
   color: var(--bg);
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 1rem;
   transition: all 0.2s ease;
-  border: 1px solid var(--accent-alt);
+  max-width: 200px;
+  border: 1.5px solid var(--accent-alt);
 }
 
 .opponent-link:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(22, 163, 74, 0.3);
 }
 
 .opponent-link:active {

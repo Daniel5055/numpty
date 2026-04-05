@@ -9,11 +9,7 @@ function PageLayout() {
           <NavLink to="/singleplayer">Singleplayer</NavLink>
         </div>
 
-        <h1>
-          <NavLink to="/" end>
-            Numpty
-          </NavLink>
-        </h1>
+        <h1>Numpty</h1>
 
         <div className="nav-side">
           <NavLink to="/multiplayer">Multiplayer</NavLink>
