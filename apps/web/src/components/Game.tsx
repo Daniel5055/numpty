@@ -2,19 +2,17 @@ import { DragDropProvider } from "@dnd-kit/react"
 import { boardReversible, boardUnique, validDefence } from "@repo/core/board"
 import { blankCard, boardId, type ICard } from "@repo/core/card"
 import { AnimatePresence } from "framer-motion"
-import useClientAIGameState from "../hooks/useClientAIGameState"
+import { useContext } from "react"
+import GameStateContext from "../contexts/GameStateContext"
 import Board from "./Board"
 import Deck from "./Deck"
 import Hand from "./Hand"
 
 interface GameProps {
-  engineType: "remote" | "client"
   playAgain: (winner: boolean) => void
 }
 
-function Game({ engineType, playAgain }: GameProps) {
-  const id1 = "Daniel"
-
+function Game({ playAgain }: GameProps) {
   const {
     matchState,
     attacking,
@@ -34,7 +32,7 @@ function Game({ engineType, playAgain }: GameProps) {
     finish,
     grant,
     grantEnd,
-  } = useClientAIGameState(id1)
+  } = useContext(GameStateContext)
 
   const boardDroppable = (!attacking && boardReversible(board)) || attacking
 
