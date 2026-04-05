@@ -23,6 +23,7 @@ class ContextManager<T> {
 
   then(callback: () => Context | void): ContextManager<T> {
     this.ctx = this.ctx.then(callback)
+
     return this
   }
 

@@ -14,6 +14,7 @@ export interface GameState {
   matchState: MatchState
   trump?: ICard
   deckCount: number
+  caption: string
 
   hand: ICard[]
   opHand: ICard[]

@@ -18,6 +18,7 @@ function Game({ playAgain }: GameProps) {
     attacking,
     trump,
     deckCount,
+    caption,
 
     hand,
     opHand,
@@ -96,22 +97,28 @@ function Game({ playAgain }: GameProps) {
               board={board}
               droppable={boardDroppable}
               attacking={attacking}
+              caption={caption}
             />
             <Hand hand={hand} opponent={false} />
           </DragDropProvider>
         </AnimatePresence>
-        {matchState === "PendingAttack" && (
-          <button onClick={finish}>Finish</button>
-        )}
-        {matchState === "PendingDefence" && (
-          <button onClick={concede}>Concede</button>
-        )}
-        {matchState === "PendingGrant" && (
-          <button onClick={() => grantEnd()}>Done Granting</button>
-        )}
-        {(matchState === "Wait" || matchState === "PendingExtraAttack") && (
-          <button>Waiting</button>
-        )}
+        <div className="status">
+          {matchState === "PendingAttack" && board.length > 0 && (
+            <button onClick={finish}>Finish</button>
+          )}
+          {matchState === "PendingAttack" && board.length == 0 && (
+            <button disabled>Your attack</button>
+          )}
+          {matchState === "PendingDefence" && (
+            <button onClick={concede}>Concede</button>
+          )}
+          {matchState === "PendingGrant" && (
+            <button onClick={() => grantEnd()}>Done Granting</button>
+          )}
+          {(matchState === "Wait" || matchState === "PendingExtraAttack") && (
+            <button disabled>Waiting</button>
+          )}
+        </div>
       </section>
       {["Winner", "Loser"].includes(matchState) && (
         <div id="endScreen">

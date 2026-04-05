@@ -84,6 +84,10 @@ export function cardToId(suit: CardSuit, value: CardValue, id?: number) {
   return `${value}_${suit}`
 }
 
+export function cardToString(card: ICard) {
+  return `${card.value} ${card.suit}`
+}
+
 export function stackToId(card: ICard) {
   return `stack_${cardToId(card.suit, card.value, card.id)}`
 }

@@ -6,16 +6,20 @@ interface BoardProps {
   board: [ICard, ICard?][]
   droppable?: boolean
   attacking: boolean
+  caption: string
 }
 
-function Board({ board, droppable = true, attacking }: BoardProps) {
+function Board({ board, droppable = true, attacking, caption }: BoardProps) {
   const { ref } = useDroppable({
     id: boardId,
     disabled: !droppable,
   })
 
+  const boardClass = attacking ? "attack" : "defend"
+
   return (
-    <div ref={ref} className="board">
+    <div ref={ref} className={`board ${boardClass}`}>
+      <div className="caption">{caption}</div>
       {board.map(([a, d]) => (
         <Stack
           attack={a}
