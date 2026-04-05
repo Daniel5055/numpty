@@ -263,7 +263,7 @@ function useGameState(id1: string, engine: RefObject<Engine>): GameState {
             const bCards = board.flat().filter((c) => c !== undefined)
             setHand((h) => {
               const toAdd = bCards.filter((c) => !includesCard(h, c))
-              return h.concat(cards).concat(toAdd)
+              return h.concat(toAdd)
             })
             setBoard([])
           })
